@@ -7,14 +7,28 @@ const sql = neon(process.env.DATABASE_URL);
 // Trigger workflow endpoint
 router.post('/trigger-workflow', async (req, res) => {
   try {
-    const { tweet_author, tweet_content, author_context, tweet_process_id } = req.body;
+    const { tweet_author_id, tweet_content } = req.body;
 
     // Validate required fields
-    if (!tweet_author || !tweet_content || !author_context || !tweet_process_id) {
+    if (!tweet_author_id || !tweet_content) {
       return res.status(400).json({
-        error: "Missing required fields: tweet_author, tweet_content, author_context, tweet_process_id"
+        error: "Missing required fields: tweet_author_id, tweet_content"
       });
     }
+
+    // The result will be an array, so we destructure the first element directly.
+    const [referencedAuthor] = await sql`
+    SELECT id, name, user_context FROM subscribed_users_bsky
+    WHERE id = ${tweet_author_id}
+    `;
+
+    if (!referencedAuthor) {
+      return res.status(404).json({ 
+        error: "No author found for this tweet_author_id" 
+      });
+    }
+
+    const { id, name, user_context } = referencedAuthor;
 
     if (!process.env.DIFY_API_KEY) {
       console.error("DIFY_API_KEY is not configured");
@@ -24,16 +38,17 @@ router.post('/trigger-workflow', async (req, res) => {
       });
     }
 
+    const tweet_process_id = tweet_author_id + "-" + Date.now() + "-" + Math.random().toString(36).substring(2, 8);
+
     await sql`
       INSERT INTO tweet_processes_bsky (
-        tweet_process_id, author, tweet_content, author_context, submitted_at, status
+        tweet_process_id, author_id, tweet_content, submitted_at, status
       ) VALUES (
-        ${tweet_process_id}, ${tweet_author}, ${tweet_content}, ${author_context}, NOW(), 'submitted'
+        ${tweet_process_id}, ${tweet_author_id}, ${tweet_content}, NOW(), 'submitted'
       )
     `;
 
     const authHeader = `Bearer ${process.env.DIFY_API_KEY}`;
-
     const baseUrl = process.env.DEPLOYMENT_URL;
     const completionUrl = baseUrl.startsWith("localhost")
       ? `http://${baseUrl}/api/process-tweet/workflow-complete`
@@ -41,9 +56,9 @@ router.post('/trigger-workflow', async (req, res) => {
 
     const requestBody = {
       inputs: {
-        author: tweet_author,
+        author: name,
         tweet_content,
-        author_context,
+        author_context: user_context,
         tweet_process_id,
         completion_url: completionUrl,
       },
