@@ -9,7 +9,7 @@ router.post('/start', async (req, res) => {
 
     await sql`
       INSERT INTO subscription_state (service_name, is_active, updated_at)
-      VALUES ('subscription_websocket', true, NOW())
+      VALUES ('bsky_websocket', true, NOW())
       ON CONFLICT (service_name) 
       DO UPDATE SET is_active = true, updated_at = NOW()
     `;
@@ -38,7 +38,7 @@ router.get('/status', async (req, res) => {
 
     const result = await sql`
       SELECT * FROM subscription_state 
-      WHERE service_name = 'subscription_websocket' 
+      WHERE service_name = 'bsky_websocket' 
       LIMIT 1
     `;
 
@@ -46,7 +46,7 @@ router.get('/status', async (req, res) => {
       // Create initial record if it doesn't exist
       await sql`
         INSERT INTO subscription_state (service_name, is_active, updated_at)
-        VALUES ('subscription_websocket', false, NOW())
+        VALUES ('bsky_websocket', false, NOW())
       `;
 
       return res.json({
@@ -81,7 +81,7 @@ router.post('/stop', async (req, res) => {
 
     await sql`
       INSERT INTO subscription_state (service_name, is_active, updated_at)
-      VALUES ('subscription_websocket', false, NOW())
+      VALUES ('bsky_websocket', false, NOW())
       ON CONFLICT (service_name) 
       DO UPDATE SET is_active = false, updated_at = NOW()
     `;
