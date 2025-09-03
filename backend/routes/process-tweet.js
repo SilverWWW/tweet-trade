@@ -25,16 +25,16 @@ router.post('/trigger-workflow', async (req, res) => {
     }
 
     await sql`
-      INSERT INTO tweet_processes_submitted (
-        tweet_process_id, author, tweet_content, author_context, submitted_at
+      INSERT INTO tweet_processes (
+        tweet_process_id, author, tweet_content, author_context, submitted_at, status
       ) VALUES (
-        ${tweet_process_id}, ${tweet_author}, ${tweet_content}, ${author_context}, NOW()
+        ${tweet_process_id}, ${tweet_author}, ${tweet_content}, ${author_context}, NOW(), 'submitted'
       )
     `;
 
     const authHeader = `Bearer ${process.env.DIFY_API_KEY}`;
 
-    const baseUrl = process.env.DEPLOYMENT_URL || "localhost:3000";
+    const baseUrl = process.env.DEPLOYMENT_URL;
     const completionUrl = baseUrl.startsWith("localhost")
       ? `http://${baseUrl}/api/process-tweet/workflow-complete`
       : `https://${baseUrl}/api/process-tweet/workflow-complete`;
@@ -104,35 +104,16 @@ router.post('/workflow-complete', async (req, res) => {
 
     const { tweet_process_id, status, error_type, error_message, market_effect, trades } = body;
 
-    // Validate required fields
+    // No tweet process id + status
     if (!tweet_process_id || !status) {
       return res.status(400).json({ 
         error: "Missing required fields: tweet_process_id, status" 
       });
     }
 
-    // Validate status-specific fields
-    if (status === "error" && (!error_type || !error_message)) {
-      return res.status(400).json({ 
-        error: "Error status requires error_type and error_message" 
-      });
-    }
-
-    if (status === "ok" && !market_effect) {
-      return res.status(400).json({ 
-        error: "OK status requires market_effect field" 
-      });
-    }
-
-    if (market_effect === "yes" && (!trades || trades.length === 0)) {
-      return res.status(400).json({ 
-        error: 'Market effect "yes" requires trades array' 
-      });
-    }
-
     // Check if submitted process exists
     const submittedProcess = await sql`
-      SELECT tweet_process_id FROM tweet_processes_submitted 
+      SELECT tweet_process_id FROM tweet_processes
       WHERE tweet_process_id = ${tweet_process_id}
     `;
 
@@ -142,16 +123,59 @@ router.post('/workflow-complete', async (req, res) => {
       });
     }
 
-    // Insert completed process
+    // If error
+    if (status !== "ok") {
+      await sql`
+      UPDATE tweet_processes
+      SET
+        status = 'error',
+        error = '${error_type || "missing type"}: ${error_message || "missing message"}',
+        completed_at = NOW()
+      WHERE tweet_process_id = ${tweet_process_id}
+      `;
+      return res.status(400).json({ 
+        error: "Error: " + error_type || "missing type" + ": " + error_message || "missing message"
+      });
+    }
+
+    // Missing market effect
+    if (!market_effect) {
+      await sql`
+      UPDATE tweet_processes
+      SET
+        status = 'error',
+        error = 'Status ok but missing market effect',
+        completed_at = NOW()
+      WHERE tweet_process_id = ${tweet_process_id}
+      `;
+      return res.status(400).json({ 
+        error: "OK status requires market_effect field" 
+      });
+    }
+
+    if (market_effect === "yes" && (!trades || trades.length === 0)) {
+      await sql`
+      UPDATE tweet_processes
+      SET
+        status = 'error',
+        error = 'Market effect yes but missing trades',
+        completed_at = NOW()
+      WHERE tweet_process_id = ${tweet_process_id}
+      `;
+      return res.status(400).json({ 
+        error: 'Market effect "yes" requires trades array' 
+      });
+    }
+
     await sql`
-      INSERT INTO tweet_processes_completed (
-        tweet_process_id, status, error_type, error_message, 
-        market_effect, trades, completed_at
-      ) VALUES (
-        ${tweet_process_id}, ${status}, ${error_type || null}, ${error_message || null},
-        ${market_effect || null}, ${trades ? JSON.stringify(trades) : null}, NOW()
-      )
-    `;
+      UPDATE tweet_processes
+      SET
+        status = 'completed',
+        market_effect = ${market_effect === "yes"},
+        trades = ${trades || null},
+        completed_at = NOW()
+      WHERE tweet_process_id = ${tweet_process_id}
+      `;
 
     res.json({
       success: true,
