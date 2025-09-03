@@ -16,6 +16,13 @@ router.post('/trigger-workflow', async (req, res) => {
       });
     }
 
+    const uuidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+    if (!uuidRegex.test(tweet_author_id)) {
+      return res.status(400).json({
+        error: "Invalid format for tweet_author_id. Must be a valid UUID."
+      });
+    }
+    
     // The result will be an array, so we destructure the first element directly.
     const [referencedAuthor] = await sql`
     SELECT id, name, user_context FROM subscribed_users_bsky
