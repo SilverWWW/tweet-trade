@@ -25,7 +25,7 @@ router.post('/trigger-workflow', async (req, res) => {
     }
 
     await sql`
-      INSERT INTO tweet_processes (
+      INSERT INTO tweet_processes_bsky (
         tweet_process_id, author, tweet_content, author_context, submitted_at, status
       ) VALUES (
         ${tweet_process_id}, ${tweet_author}, ${tweet_content}, ${author_context}, NOW(), 'submitted'
@@ -113,7 +113,7 @@ router.post('/workflow-complete', async (req, res) => {
 
     // Check if submitted process exists
     const submittedProcess = await sql`
-      SELECT tweet_process_id FROM tweet_processes
+      SELECT tweet_process_id FROM tweet_processes_bsky
       WHERE tweet_process_id = ${tweet_process_id}
     `;
 
@@ -126,7 +126,7 @@ router.post('/workflow-complete', async (req, res) => {
     // If error
     if (status !== "ok") {
       await sql`
-      UPDATE tweet_processes
+      UPDATE tweet_processes_bsky
       SET
         status = 'error',
         error = '${error_type || "missing type"}: ${error_message || "missing message"}',
@@ -141,7 +141,7 @@ router.post('/workflow-complete', async (req, res) => {
     // Missing market effect
     if (!market_effect) {
       await sql`
-      UPDATE tweet_processes
+      UPDATE tweet_processes_bsky
       SET
         status = 'error',
         error = 'Status ok but missing market effect',
@@ -155,7 +155,7 @@ router.post('/workflow-complete', async (req, res) => {
 
     if (market_effect === "yes" && (!trades || trades.length === 0)) {
       await sql`
-      UPDATE tweet_processes
+      UPDATE tweet_processes_bsky
       SET
         status = 'error',
         error = 'Market effect yes but missing trades',
@@ -168,7 +168,7 @@ router.post('/workflow-complete', async (req, res) => {
     }
 
     await sql`
-      UPDATE tweet_processes
+      UPDATE tweet_processes_bsky
       SET
         status = 'completed',
         market_effect = ${market_effect === "yes"},
