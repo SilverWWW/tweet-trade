@@ -172,7 +172,7 @@ router.post('/workflow-complete', async (req, res) => {
       SET
         status = 'completed',
         market_effect = ${market_effect === "yes"},
-        trades = ${trades || null},
+        trades = ${trades ? JSON.stringify(trades) : null},
         completed_at = NOW()
       WHERE tweet_process_id = ${tweet_process_id}
       `;
