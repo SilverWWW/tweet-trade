@@ -30,12 +30,12 @@ app.use(express.urlencoded({ extended: true }));
 // Import routes
 const healthRoutes = require('./routes/health');
 const processTweetRoutes = require('./routes/process-tweet');
-const addUserRoutes = require('./routes/add-user');
+const authorRoutes = require('./routes/authors');
 
 // Use routes
 app.use('/api/health', healthRoutes);
 app.use('/api/process-tweet', processTweetRoutes);
-app.use('/api/add-user', addUserRoutes);
+app.use('/api/authors', authorRoutes);
 
 // Root endpoint
 app.get('/', (req, res) => {

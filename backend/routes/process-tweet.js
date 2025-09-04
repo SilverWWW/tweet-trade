@@ -22,10 +22,9 @@ router.post('/trigger-workflow', async (req, res) => {
         error: "Invalid format for tweet_author_id. Must be a valid UUID."
       });
     }
-    
-    // The result will be an array, so we destructure the first element directly.
+
     const [referencedAuthor] = await sql`
-    SELECT id, name, user_context FROM subscribed_users_bsky
+    SELECT id, name, author_context FROM subscribed_authors_bsky
     WHERE id = ${tweet_author_id}
     `;
 
@@ -35,7 +34,7 @@ router.post('/trigger-workflow', async (req, res) => {
       });
     }
 
-    const { id, name, user_context } = referencedAuthor;
+    const { id, name, author_context } = referencedAuthor;
 
     if (!process.env.DIFY_API_KEY) {
       console.error("DIFY_API_KEY is not configured");
@@ -65,7 +64,7 @@ router.post('/trigger-workflow', async (req, res) => {
       inputs: {
         author: name,
         tweet_content,
-        author_context: user_context,
+        author_context: author_context,
         tweet_process_id,
         completion_url: completionUrl,
       },
