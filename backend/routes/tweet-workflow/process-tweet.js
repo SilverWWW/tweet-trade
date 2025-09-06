@@ -4,12 +4,22 @@ const router = express.Router();
 
 const sql = neon(process.env.DATABASE_URL);
 
-// Trigger workflow endpoint
+/**
+ * POST /api/process-tweet/trigger-workflow
+ * Trigger the tweet processing workflow
+ * 
+ * @param {string} tweet_author_id - UUID of the author (required)
+ * @param {string} tweet_content - Content of the tweet to process (required)
+ * 
+ * @returns {object} 200 - Workflow triggered successfully
+ * @returns {object} 400 - Invalid parameters
+ * @returns {object} 404 - Author not found
+ * @returns {object} 500 - Server error
+ */
 router.post('/trigger-workflow', async (req, res) => {
   try {
     const { tweet_author_id, tweet_content } = req.body;
 
-    // Validate required fields
     if (!tweet_author_id || !tweet_content) {
       return res.status(400).json({
         error: "Missing required fields: tweet_author_id, tweet_content"
@@ -97,12 +107,24 @@ router.post('/trigger-workflow', async (req, res) => {
   }
 });
 
-// Workflow complete endpoint
+/**
+ * POST /api/process-tweet/workflow-complete
+ * Handle workflow completion webhook from Dify
+ * 
+ * @param {object} webhookBody - Webhook payload from Dify
+ * @param {string} webhookBody.text - Processed text content
+ * @param {string} webhookBody.source - Source of the webhook
+ * @param {string} webhookBody.timestamp - Timestamp of the webhook
+ * 
+ * @returns {object} 200 - Workflow completion recorded successfully
+ * @returns {object} 400 - Invalid webhook data
+ * @returns {object} 404 - Process not found
+ * @returns {object} 500 - Server error
+ */
 router.post('/workflow-complete', async (req, res) => {
   try {
     const webhookBody = req.body;
 
-    // Validate webhook structure
     if (!webhookBody.text || !webhookBody.source || !webhookBody.timestamp) {
       return res.status(400).json({ 
         error: "Missing required webhook fields: text, source, timestamp" 
@@ -114,7 +136,6 @@ router.post('/workflow-complete', async (req, res) => {
       const cleanedText = webhookBody.text.replace(/\\n/g, "").replace(/\\"/g, '"');
       body = JSON.parse(cleanedText);
 
-      // Handle trades field if it's still a string after parsing
       if (body.trades && typeof body.trades === "string") {
         body.trades = JSON.parse(body.trades);
       }
@@ -125,14 +146,11 @@ router.post('/workflow-complete', async (req, res) => {
 
     const { tweet_process_id, status, error_type, error_message, market_effect, trades } = body;
 
-    // No tweet process id + status
     if (!tweet_process_id || !status) {
       return res.status(400).json({ 
         error: "Missing required fields: tweet_process_id, status" 
       });
     }
-
-    // Check if submitted process exists
     const submittedProcess = await sql`
       SELECT tweet_process_id FROM tweet_processes_bsky
       WHERE tweet_process_id = ${tweet_process_id}
@@ -144,7 +162,6 @@ router.post('/workflow-complete', async (req, res) => {
       });
     }
 
-    // If error
     if (status !== "ok") {
       await sql`
       UPDATE tweet_processes_bsky
@@ -159,7 +176,6 @@ router.post('/workflow-complete', async (req, res) => {
       });
     }
 
-    // Missing market effect
     if (!market_effect) {
       await sql`
       UPDATE tweet_processes_bsky

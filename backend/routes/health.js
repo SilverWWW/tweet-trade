@@ -4,9 +4,15 @@ const router = express.Router();
 
 const sql = neon(process.env.DATABASE_URL);
 
+/**
+ * GET /api/health
+ * Health check endpoint
+ * 
+ * @returns {object} 200 - Service is healthy
+ * @returns {object} 500 - Service is unhealthy
+ */
 router.get('/', async (req, res) => {
   try {
-    // Test database connection
     await sql`SELECT 1`;
 
     res.json({
