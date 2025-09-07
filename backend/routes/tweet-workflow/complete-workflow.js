@@ -5,107 +5,71 @@ const router = express.Router();
 const sql = neon(process.env.DATABASE_URL);
 
 /**
- * POST /api/process-tweet/trigger-workflow
- * Trigger the tweet processing workflow
- * 
- * @param {string} tweet_author_id - UUID of the author (required)
- * @param {string} tweet_content - Content of the tweet to process (required)
- * 
- * @returns {object} 200 - Workflow triggered successfully
- * @returns {object} 400 - Invalid parameters
- * @returns {object} 404 - Author not found
- * @returns {object} 500 - Server error
+ * Helper function to calculate target expiry date based on position
+ * @param {string} position - 'long' or 'short'
+ * @returns {string} - Target expiry date in YYYY-MM-DD format
  */
-router.post('/trigger-workflow', async (req, res) => {
-  try {
-    const { tweet_author_id, tweet_content } = req.body;
-
-    if (!tweet_author_id || !tweet_content) {
-      return res.status(400).json({
-        error: "Missing required fields: tweet_author_id, tweet_content"
-      });
-    }
-
-    const uuidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
-    if (!uuidRegex.test(tweet_author_id)) {
-      return res.status(400).json({
-        error: "Invalid format for tweet_author_id. Must be a valid UUID."
-      });
-    }
-
-    const [referencedAuthor] = await sql`
-    SELECT id, name, author_context FROM subscribed_authors_bsky
-    WHERE id = ${tweet_author_id}
-    `;
-
-    if (!referencedAuthor) {
-      return res.status(404).json({ 
-        error: "No author found for this tweet_author_id" 
-      });
-    }
-
-    const { id, name, author_context } = referencedAuthor;
-
-    if (!process.env.DIFY_API_KEY) {
-      console.error("DIFY_API_KEY is not configured");
-      return res.status(500).json({
-        error: "DIFY_API_KEY environment variable is not configured. Please add it to your .env file.",
-        setup_instructions: "Add DIFY_API_KEY=your_dify_api_key to your .env file",
-      });
-    }
-
-    const tweet_process_id = tweet_author_id + "-" + Date.now() + "-" + Math.random().toString(36).substring(2, 8);
-
-    await sql`
-      INSERT INTO tweet_processes_bsky (
-        tweet_process_id, author_id, tweet_content, submitted_at, status
-      ) VALUES (
-        ${tweet_process_id}, ${tweet_author_id}, ${tweet_content}, NOW(), 'submitted'
-      )
-    `;
-
-    const authHeader = `Bearer ${process.env.DIFY_API_KEY}`;
-    const baseUrl = process.env.DEPLOYMENT_URL;
-    const completionUrl = baseUrl.startsWith("localhost")
-      ? `http://${baseUrl}/api/process-tweet/workflow-complete`
-      : `https://${baseUrl}/api/process-tweet/workflow-complete`;
-
-    const requestBody = {
-      inputs: {
-        author: name,
-        tweet_content,
-        author_context: author_context,
-        tweet_process_id,
-        completion_url: completionUrl,
-      },
-      response_mode: "streaming",
-      user: "wsilver",
-    };
-
-    const difyResponse = await fetch("https://api.dify.ai/v1/workflows/run", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: authHeader,
-      },
-      body: JSON.stringify(requestBody),
-    });
-
-    if (!difyResponse.ok) {
-      const errorText = await difyResponse.text();
-      console.error("Dify API error response:", errorText);
-      throw new Error(`Dify API error: ${difyResponse.status} - ${errorText}`);
-    }
-
-    res.json({
-      success: true,
-      tweet_process_id,
-    });
-  } catch (error) {
-    console.error("Error triggering workflow:", error);
-    res.status(500).json({ error: "Failed to trigger workflow" });
+function calculateTargetExpiryDate(position) {
+  const targetDate = new Date();
+  
+  if (position === 'short') {
+    targetDate.setDate(targetDate.getDate() + 30);
+  } else if (position === 'long') {
+    targetDate.setMonth(targetDate.getMonth() + 6);
+  } else {
+    throw new Error('Invalid position. Must be "long" or "short"');
   }
-});
+  
+  return targetDate.toISOString().split('T')[0];
+}
+
+/**
+ * Helper function to process trades and insert into trades_queued table
+ * @param {string} tweet_process_id - The tweet process ID
+ * @param {array} trades - Array of trade objects
+ */
+async function processTrades(tweet_process_id, trades) {
+  try {
+    for (const trade of trades) {
+      const { action, position, reasoning, confidence, stock_ticker } = trade;
+      
+      if (!action || !position || !reasoning || !stock_ticker) {
+        console.error('Invalid trade object:', trade);
+        continue;
+      }
+      
+      if (action !== 'buy' && action !== 'sell') {
+        console.error('Invalid action:', action);
+        continue;
+      }
+      
+      if (position !== 'long' && position !== 'short') {
+        console.error('Invalid position:', position);
+        continue;
+      }
+      
+      const targetExpiryDate = calculateTargetExpiryDate(position);
+      const contract = action === 'buy' ? 'call' : 'put';
+      const amount = 1000;
+      
+      try {
+        await sql`
+          INSERT INTO trades_queued (
+            tweet_process_id, ticker, contract, amount, target_expiry_date, reasoning
+          ) VALUES (
+            ${tweet_process_id}, ${stock_ticker}, ${contract}, ${amount}, ${targetExpiryDate}, ${reasoning}
+          )
+        `;
+        
+        console.log(`Successfully queued trade for ${stock_ticker} (${contract})`);
+      } catch (dbError) {
+        console.error(`Error inserting trade for ${stock_ticker}:`, dbError);
+      }
+    }
+  } catch (error) {
+    console.error('Error processing trades:', error);
+  }
+}
 
 /**
  * POST /api/process-tweet/workflow-complete
@@ -152,7 +116,7 @@ router.post('/workflow-complete', async (req, res) => {
       });
     }
     const submittedProcess = await sql`
-      SELECT tweet_process_id FROM tweet_processes_bsky
+      SELECT tweet_process_id FROM tweet_processes
       WHERE tweet_process_id = ${tweet_process_id}
     `;
 
@@ -164,7 +128,7 @@ router.post('/workflow-complete', async (req, res) => {
 
     if (status !== "ok") {
       await sql`
-      UPDATE tweet_processes_bsky
+      UPDATE tweet_processes
       SET
         status = 'error',
         error = '${error_type || "missing type"}: ${error_message || "missing message"}',
@@ -178,7 +142,7 @@ router.post('/workflow-complete', async (req, res) => {
 
     if (!market_effect) {
       await sql`
-      UPDATE tweet_processes_bsky
+      UPDATE tweet_processes
       SET
         status = 'error',
         error = 'Status ok but missing market effect',
@@ -192,7 +156,7 @@ router.post('/workflow-complete', async (req, res) => {
 
     if (market_effect === "yes" && (!trades || trades.length === 0)) {
       await sql`
-      UPDATE tweet_processes_bsky
+      UPDATE tweet_processes
       SET
         status = 'error',
         error = 'Market effect yes but missing trades',
@@ -205,14 +169,18 @@ router.post('/workflow-complete', async (req, res) => {
     }
 
     await sql`
-      UPDATE tweet_processes_bsky
+      UPDATE tweet_processes
       SET
         status = 'completed',
         market_effect = ${market_effect === "yes"},
         trades = ${trades ? JSON.stringify(trades) : null},
         completed_at = NOW()
       WHERE tweet_process_id = ${tweet_process_id}
-      `;
+    `;
+
+    if (market_effect === "yes" && trades && trades.length > 0) {
+      await processTrades(tweet_process_id, trades);
+    }
 
     res.json({
       success: true,

@@ -29,15 +29,17 @@ app.use(express.urlencoded({ extended: true }));
 
 // Import routes
 const healthRoutes = require('./routes/health');
-const processTweetRoutes = require('./routes/tweet-workflow/process-tweet');
+const triggerWorkflowRoutes = require('./routes/tweet-workflow/trigger-workflow');
+const completeWorkflowRoutes = require('./routes/tweet-workflow/complete-workflow');
 const authorRoutes = require('./routes/authors/authors');
 const executeRoutes = require('./routes/trading/execute');
 const accountRoutes = require('./routes/trading/account');
-const marketRoutes = require('./routes/trading/market');
+const { router: marketRoutes } = require('./routes/trading/market');
 
 // Use routes
 app.use('/api/health', healthRoutes);
-app.use('/api/process-tweet', processTweetRoutes);
+app.use('/api/process-tweet', triggerWorkflowRoutes);
+app.use('/api/process-tweet', completeWorkflowRoutes);
 app.use('/api/authors', authorRoutes);
 app.use('/api/trading/execute', executeRoutes);
 app.use('/api/trading/account', accountRoutes);

@@ -2,6 +2,8 @@ const express = require('express');
 const axios = require('axios');
 const router = express.Router();
 
+const { getCurrentStockPrice, fetchOptionsContracts } = require('./market');
+
 const ALPACA_BASE_URL = 'https://paper-api.alpaca.markets/v2';
 const ALPACA_API_KEY = process.env.ALPACA_API_KEY;
 const ALPACA_SECRET_KEY = process.env.ALPACA_SECRET_KEY;
@@ -16,39 +18,240 @@ const alpacaClient = axios.create({
 });
 
 /**
- * POST /api/trading/execute/buy
- * Create a buy order for a given stock
+ * Helper function to validate and format target expiration date
+ * @param {string} targetExpiryDate - Target expiration date in YYYY-MM-DD format
+ * @returns {string} - Validated and formatted expiration date
+ */
+function validateTargetExpirationDate(targetExpiryDate) {
+  if (!targetExpiryDate || typeof targetExpiryDate !== 'string') {
+    throw new Error('Target expiry date is required and must be a string');
+  }
+  
+  const date = new Date(targetExpiryDate);
+  if (isNaN(date.getTime())) {
+    throw new Error('Invalid date format. Use YYYY-MM-DD format');
+  }
+  
+  const today = new Date();
+  if (date <= today) {
+    throw new Error('Target expiry date must be in the future');
+  }
+  
+  return targetExpiryDate;
+}
+
+/**
+ * Helper function to select the best options contract
+ * @param {array} contracts - Array of options contracts
+ * @param {string} targetExpirationDate - Target expiration date
+ * @param {number} currentPrice - Current stock price
+ * @returns {object} - Best options contract
+ */
+function selectBestContract(contracts, targetExpirationDate, currentPrice) {
+  if (!contracts || contracts.length === 0) {
+    throw new Error('No contracts available for selection');
+  }
+
+  const sortedContracts = contracts.sort((a, b) => {
+    const dateDiffA = Math.abs(new Date(a.expiration_date) - new Date(targetExpirationDate));
+    const dateDiffB = Math.abs(new Date(b.expiration_date) - new Date(targetExpirationDate));
+    
+    if (dateDiffA !== dateDiffB) {
+      return dateDiffA - dateDiffB;
+    }
+    
+    const priceDiffA = Math.abs(parseFloat(a.strike_price) - currentPrice);
+    const priceDiffB = Math.abs(parseFloat(b.strike_price) - currentPrice);
+    
+    return priceDiffA - priceDiffB;
+  });
+
+  return sortedContracts[0];
+}
+
+/**
+ * Helper function to validate common parameters
+ * @param {object} params - Parameters to validate
+ * @returns {object} - Validation result
+ */
+function validateCommonParams(params) {
+  const { ticker, amount, target_expiry_date } = params;
+  const errors = [];
+
+  if (!ticker || typeof ticker !== 'string' || ticker.length === 0) {
+    errors.push('Ticker must be a non-empty string');
+  }
+
+  if (!amount || amount <= 0) {
+    errors.push('Amount must be greater than 0');
+  }
+
+  if (!target_expiry_date || typeof target_expiry_date !== 'string') {
+    errors.push('Target expiry date is required and must be a string');
+  } else {
+    try {
+      validateTargetExpirationDate(target_expiry_date);
+    } catch (dateError) {
+      errors.push(dateError.message);
+    }
+  }
+
+  if (!ALPACA_API_KEY || !ALPACA_SECRET_KEY) {
+    errors.push('Alpaca API credentials not configured');
+  }
+
+  return {
+    isValid: errors.length === 0,
+    errors
+  };
+}
+
+/**
+ * Helper function to create an options order
+ * @param {string} ticker - Stock symbol
+ * @param {number} amount - Dollar amount to invest
+ * @param {string} targetExpiryDate - Target expiration date in YYYY-MM-DD format
+ * @param {string} optionType - 'call' or 'put'
+ * @returns {object} - Order result
+ */
+async function createOptionsOrder(ticker, amount, targetExpiryDate, optionType) {
+  const currentPrice = await getCurrentStockPrice(ticker);
+  const contracts = await fetchOptionsContracts(ticker, optionType);
+  const validatedExpiryDate = validateTargetExpirationDate(targetExpiryDate);
+
+  if (!contracts || contracts.length === 0) {
+    throw new Error(`No ${optionType} options contracts found for ${ticker}`);
+  }
+
+  const bestContract = selectBestContract(contracts, validatedExpiryDate, currentPrice);
+  
+  const contractPrice = parseFloat(bestContract.close_price) || 1.0;
+  const quantity = Math.floor(amount / contractPrice);
+  
+  if (quantity <= 0) {
+    throw new Error(`Amount ${amount} is too small for options contract priced at $${contractPrice}`);
+  }
+
+  const orderPayload = {
+    symbol: bestContract.symbol,
+    qty: quantity.toString(),
+    side: 'buy',
+    type: 'market',
+    time_in_force: 'day'
+  };
+
+  const response = await alpacaClient.post('/orders', orderPayload);
+
+  return {
+    order: response.data,
+    requested: {
+      ticker: ticker.toUpperCase(),
+      amount: amount,
+      target_expiry_date: validatedExpiryDate,
+      quantity: quantity,
+      contract: {
+        symbol: bestContract.symbol,
+        name: bestContract.name,
+        expiration_date: bestContract.expiration_date,
+        strike_price: bestContract.strike_price,
+        type: bestContract.type,
+        close_price: bestContract.close_price
+      }
+    }
+  };
+}
+
+/**
+ * POST /api/trading/execute/option/buy/:type
+ * Create a buy order for options (call or put)
  * 
+ * @param {string} type - Option type: 'call' or 'put' (required)
  * @param {string} ticker - Stock symbol/ticker (required)
  * @param {number} amount - Dollar amount to invest (required)
- * @param {boolean} extended_hours - Allow execution outside regular hours (optional, default: false)
+ * @param {string} target_expiry_date - Target expiration date in YYYY-MM-DD format (required)
  * 
  * @returns {object} 200 - Order created successfully
  * @returns {object} 400 - Invalid parameters
  * @returns {object} 500 - Server error
  */
-router.post('/buy', async (req, res) => {
+router.post('/option/buy/:type', async (req, res) => {
   try {
-    const { ticker, amount, extended_hours = false } = req.body;
+    const { type } = req.params;
+    const { ticker, amount, target_expiry_date } = req.body;
 
-    if (!ticker || !amount) {
+    if (!type || (type !== 'call' && type !== 'put')) {
       return res.status(400).json({
-        error: 'Missing required parameters',
-        message: 'Both ticker and amount are required'
+        error: 'Invalid option type',
+        message: 'Type must be either "call" or "put"'
       });
     }
 
-    if (amount <= 0) {
+    const validation = validateCommonParams({ ticker, amount, target_expiry_date });
+    if (!validation.isValid) {
       return res.status(400).json({
-        error: 'Invalid amount',
-        message: 'Amount must be greater than 0'
+        error: 'Invalid parameters',
+        message: validation.errors.join(', ')
       });
     }
 
-    if (typeof ticker !== 'string' || ticker.length === 0) {
+    const result = await createOptionsOrder(ticker, amount, target_expiry_date, type);
+
+    res.status(200).json({
+      success: true,
+      message: `${type.charAt(0).toUpperCase() + type.slice(1)} option buy order created for ${ticker}`,
+      order: result.order,
+      requested: result.requested
+    });
+
+  } catch (error) {
+    console.error(`Error creating ${req.params.type} option buy order:`, error);
+
+    if (error.response) {
+      const statusCode = error.response.status;
+      const errorData = error.response.data;
+
+      return res.status(statusCode).json({
+        error: 'Alpaca API error',
+        message: errorData.message || `Failed to create ${req.params.type} option order`,
+        details: errorData
+      });
+    }
+
+    res.status(500).json({
+      error: 'Internal server error',
+      message: error.message || `Failed to create ${req.params.type} option buy order`
+    });
+  }
+});
+
+/**
+ * DELETE /api/trading/execute/option/close/:symbol
+ * Close a position by symbol and percentage
+ * 
+ * @param {string} symbol - Options contract symbol (required)
+ * @param {number} percentage - Percentage of position to close (required, 0-100)
+ * 
+ * @returns {object} 200 - Position closed successfully
+ * @returns {object} 400 - Invalid parameters
+ * @returns {object} 404 - Position not found
+ * @returns {object} 500 - Server error
+ */
+router.delete('/option/close/:symbol', async (req, res) => {
+  try {
+    const { symbol } = req.params;
+    const { percentage } = req.body;
+
+    if (!symbol || typeof symbol !== 'string' || symbol.length === 0) {
       return res.status(400).json({
-        error: 'Invalid ticker',
-        message: 'Ticker must be a non-empty string'
+        error: 'Invalid symbol parameter',
+        message: 'Symbol must be a non-empty string'
+      });
+    }
+
+    if (!percentage || percentage < 0 || percentage > 100) {
+      return res.status(400).json({
+        error: 'Invalid percentage parameter',
+        message: 'Percentage must be between 0 and 100'
       });
     }
 
@@ -59,87 +262,46 @@ router.post('/buy', async (req, res) => {
       });
     }
 
-    const orderType = extended_hours ? 'limit' : 'market';
-    const timeInForce = 'day';
-
-    let limitPrice = null;
-    if (extended_hours) {
-      try {
-        const dataApiClient = axios.create({
-          baseURL: 'https://data.alpaca.markets/v2',
-          headers: {
-            'APCA-API-KEY-ID': ALPACA_API_KEY,
-            'APCA-API-SECRET-KEY': ALPACA_SECRET_KEY,
-            'Content-Type': 'application/json'
-          }
-        });
-        
-        const marketResponse = await dataApiClient.get(`/stocks/quotes/latest?symbols=${ticker.toUpperCase()}`);
-        const quote = marketResponse.data.quotes[ticker.toUpperCase()];
-        
-        if (quote && quote.ap > 0) {
-          const currentPrice = parseFloat(quote.ap);
-          const calculatedPrice = currentPrice * 1.02;
-          limitPrice = Math.round(calculatedPrice * 100) / 100;
-          console.log(`Setting limit price for ${ticker}: $${currentPrice} -> $${limitPrice.toFixed(2)}`);
-        } else {
-          throw new Error('No valid ask price available');
-        }
-      } catch (marketError) {
-        console.warn(`Could not fetch market data for ${ticker}, using fallback pricing:`, marketError.message);
-        limitPrice = amount * 0.01;
+    const response = await alpacaClient.delete(`/positions/${encodeURIComponent(symbol)}`, {
+      data: {
+        percentage: percentage.toString()
       }
-    }
-
-    const orderPayload = {
-      symbol: ticker.toUpperCase(),
-      notional: amount.toString(),
-      side: 'buy',
-      type: orderType,
-      time_in_force: timeInForce
-    };
-
-    if (extended_hours && limitPrice) {
-      orderPayload.limit_price = limitPrice.toString();
-    }
-
-    if (extended_hours) {
-      orderPayload.extended_hours = true;
-    }
-
-    const response = await alpacaClient.post('/orders', orderPayload);
+    });
 
     res.status(200).json({
       success: true,
-      message: `Buy order created for ${ticker}`,
+      message: `Position closed for ${symbol} (${percentage}%)`,
       order: response.data,
       requested: {
-        ticker: ticker.toUpperCase(),
-        amount: amount,
-        extended_hours: extended_hours,
-        order_type: orderType,
-        time_in_force: timeInForce,
-        limit_price: limitPrice
+        symbol: symbol,
+        percentage: percentage
       }
     });
 
   } catch (error) {
-    console.error('Error creating buy order:', error);
+    console.error('Error closing position:', error);
 
     if (error.response) {
       const statusCode = error.response.status;
       const errorData = error.response.data;
 
+      if (statusCode === 404) {
+        return res.status(404).json({
+          error: 'Position not found',
+          message: `No open position found for symbol: ${req.params.symbol}`
+        });
+      }
+
       return res.status(statusCode).json({
         error: 'Alpaca API error',
-        message: errorData.message || 'Failed to create order',
+        message: errorData.message || 'Failed to close position',
         details: errorData
       });
     }
 
     res.status(500).json({
       error: 'Internal server error',
-      message: 'Failed to create buy order'
+      message: 'Failed to close position'
     });
   }
 });

@@ -16,34 +16,12 @@ const alpacaClient = axios.create({
 });
 
 /**
- * GET /api/trading/market/stock-price/:symbol
- * Get current market data for a given stock symbol
- * 
- * @param {string} symbol - Stock symbol/ticker (required)
- * 
- * @returns {object} 200 - Market data retrieved successfully
- * @returns {object} 400 - Invalid symbol parameter
- * @returns {object} 404 - Asset not found
- * @returns {object} 500 - Server error
+ * Helper function to get current stock price
+ * @param {string} symbol - Stock symbol
+ * @returns {number} - Current stock price
  */
-router.get('/stock-price/:symbol', async (req, res) => {
+async function getCurrentStockPrice(symbol) {
   try {
-    const { symbol } = req.params;
-
-    if (!symbol || typeof symbol !== 'string' || symbol.length === 0) {
-      return res.status(400).json({
-        error: 'Invalid symbol parameter',
-        message: 'Symbol must be a non-empty string'
-      });
-    }
-
-    if (!ALPACA_API_KEY || !ALPACA_SECRET_KEY) {
-      return res.status(500).json({
-        error: 'Configuration error',
-        message: 'Alpaca API credentials not configured'
-      });
-    }
-
     const dataApiClient = axios.create({
       baseURL: 'https://data.alpaca.markets/v2',
       headers: {
@@ -52,58 +30,44 @@ router.get('/stock-price/:symbol', async (req, res) => {
         'Content-Type': 'application/json'
       }
     });
-
-    const marketResponse = await dataApiClient.get(`/stocks/quotes/latest?symbols=${symbol.toUpperCase()}`);
-
-    const quote = marketResponse.data.quotes[symbol.toUpperCase()];
-    let marketData = null;
     
-    if (quote) {
-      marketData = {
-        symbol: symbol.toUpperCase(),
-        timestamp: quote.t,
-        bid_price: quote.bp,
-        bid_size: quote.bs,
-        bid_exchange: quote.bx,
-        ask_price: quote.ap,
-        ask_size: quote.as,
-        ask_exchange: quote.ax,
-        conditions: quote.c,
-        tape: quote.z
-      };
+    const marketResponse = await dataApiClient.get(`/stocks/quotes/latest?symbols=${symbol.toUpperCase()}`);
+    const quote = marketResponse.data.quotes[symbol.toUpperCase()];
+    
+    if (quote && quote.ap > 0) {
+      return parseFloat(quote.ap);
+    } else {
+      throw new Error('No valid ask price available');
     }
-
-    res.status(200).json({
-      success: true,
-      market_data: marketData
-    });
-
   } catch (error) {
-    console.error('Error fetching stock price:', error);
+    console.warn(`Could not fetch market data for ${symbol}:`, error.message);
+    throw new Error('Unable to fetch current stock price');
+  }
+}
 
-    if (error.response) {
-      const statusCode = error.response.status;
-      const errorData = error.response.data;
+/**
+ * Helper function to fetch options contracts
+ * @param {string} symbol - Stock symbol
+ * @param {string} optionType - 'call' or 'put'
+ * @returns {array} - Array of options contracts
+ */
+async function fetchOptionsContracts(symbol, optionType = null) {
+  try {
+    const params = {
+      underlying_symbols: symbol.toUpperCase(),
+      limit: 100
+    };
 
-      if (statusCode === 404) {
-        return res.status(404).json({
-          error: 'Asset not found',
-          message: `No asset found for symbol: ${req.params.symbol}`
-        });
-      }
-
-      return res.status(statusCode).json({
-        error: 'Alpaca API error',
-        message: errorData.message || 'Failed to fetch asset information',
-        details: errorData
-      });
+    if (optionType && (optionType === 'call' || optionType === 'put')) {
+      params.type = optionType;
     }
 
-    res.status(500).json({
-      error: 'Internal server error',
-      message: 'Failed to fetch stock information'
-    });
+    const contractsResponse = await alpacaClient.get('/options/contracts', { params });
+    return contractsResponse.data.option_contracts || [];
+  } catch (error) {
+    console.error(`Error fetching options contracts for ${symbol}:`, error);
+    throw new Error(`Unable to fetch options contracts for ${symbol}`);
   }
-});
+}
 
-module.exports = router;
+module.exports = { router, getCurrentStockPrice, fetchOptionsContracts };
