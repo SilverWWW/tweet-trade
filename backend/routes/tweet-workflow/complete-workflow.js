@@ -134,7 +134,7 @@ async function processTrades(tweet_process_id, trades) {
       
       const targetExpiryDate = calculateTargetExpiryDate(position);
       const contract = action === 'buy' ? 'call' : 'put';
-      const amount = 10000;
+      const amount = 2000;
 
       if (isMarketOpen()) {
         try {
