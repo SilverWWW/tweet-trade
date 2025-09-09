@@ -130,7 +130,7 @@ async function createOptionsOrder(ticker, amount, targetExpiryDate, optionType) 
   const currentPrice = await getCurrentStockPrice(ticker);
 
   const searchEndDate = new Date(targetExpiryDate);
-  searchEndDate.setDate(searchEndDate.getMonth() + 3);
+  searchEndDate.setDate(searchEndDate.getDay() + 90);
   const searchEndDateStr = searchEndDate.toISOString().split('T')[0];
 
   const contracts = await findContracts(
@@ -154,7 +154,7 @@ async function createOptionsOrder(ticker, amount, targetExpiryDate, optionType) 
     throw new Error(`The selected contract ${bestContract.symbol} has a non-positive price and cannot be traded.`);
   }
 
-  const quantity = Math.floor(amount / costPerContract);
+  const quantity = Math.floor(amount / costPerOption);
   
   if (quantity <= 0) {
     throw new Error(`Investment of $${amount} is too small to buy a contract priced at $${contractPrice.toFixed(2)} (total cost $${costPerOption.toFixed(2)}).`);
