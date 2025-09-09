@@ -3,7 +3,6 @@ const { neon } = require('@neondatabase/serverless');
 const axios = require('axios');
 const router = express.Router();
 
-// Establish a database connection using the URL from environment variables
 const sql = neon(process.env.DATABASE_URL);
 
 /**
@@ -27,7 +26,6 @@ router.post('/add-bsky-author', async (req, res) => {
       });
     }
 
-    // Clean the username (remove @ if present)
     const cleanUsername = username.replace(/^@/, '');
     
     // Resolve the DID from the username using BlueSky API
@@ -85,16 +83,13 @@ router.post('/add-bsky-author', async (req, res) => {
  */
 router.get('/get-bsky-authors', async (req, res) => {
   try {
-    // Select all columns for all authors from the table
     const authors = await sql`
       SELECT id, bsky_did, name, author_context, created_at 
       FROM subscribed_authors_bsky
     `;
     
-    // Respond with the array of authors
     res.status(200).json(authors);
   } catch (error) {
-    // Log the error and return a server error message
     console.error("Error fetching Bsky authors:", error);
     res.status(500).json({ error: "Failed to fetch authors." });
   }

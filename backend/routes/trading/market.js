@@ -1,73 +1,116 @@
-const express = require('express');
 const axios = require('axios');
-const router = express.Router();
 
-const ALPACA_BASE_URL = 'https://paper-api.alpaca.markets/v2';
-const ALPACA_API_KEY = process.env.ALPACA_API_KEY;
-const ALPACA_SECRET_KEY = process.env.ALPACA_SECRET_KEY;
-
-const alpacaClient = axios.create({
-  baseURL: ALPACA_BASE_URL,
+const dataApiClientV2 = axios.create({
+  baseURL: 'https://data.alpaca.markets/v2',
   headers: {
-    'APCA-API-KEY-ID': ALPACA_API_KEY,
-    'APCA-API-SECRET-KEY': ALPACA_SECRET_KEY,
-    'Content-Type': 'application/json'
+    'APCA-API-KEY-ID': process.env.ALPACA_API_KEY,
+    'APCA-API-SECRET-KEY': process.env.ALPACA_SECRET_KEY,
   }
 });
 
+const dataApiClientV1 = axios.create({
+  baseURL: 'https://data.alpaca.markets/v1beta1',
+  headers: {
+    'APCA-API-KEY-ID': process.env.ALPACA_API_KEY,
+    'APCA-API-SECRET-KEY': process.env.ALPACA_SECRET_KEY,
+  }
+});
+
+const paperApiClient = axios.create({
+  baseURL: 'https://paper-api.alpaca.markets/v2',
+  headers: {
+    'APCA-API-KEY-ID': process.env.ALPACA_API_KEY,
+    'APCA-API-SECRET-KEY': process.env.ALPACA_SECRET_KEY,
+  }
+});
+
+
+
 /**
- * Helper function to get current stock price
- * @param {string} symbol - Stock symbol
- * @returns {number} - Current stock price
+ * Fetches the current price of the underlying stock.
+ * @param {string} symbol - The stock ticker.
+ * @returns {Promise<number>} - The latest ask price for the stock.
  */
 async function getCurrentStockPrice(symbol) {
   try {
-    const dataApiClient = axios.create({
-      baseURL: 'https://data.alpaca.markets/v2',
-      headers: {
-        'APCA-API-KEY-ID': ALPACA_API_KEY,
-        'APCA-API-SECRET-KEY': ALPACA_SECRET_KEY,
-        'Content-Type': 'application/json'
-      }
-    });
-    
-    const marketResponse = await dataApiClient.get(`/stocks/quotes/latest?symbols=${symbol.toUpperCase()}`);
-    const quote = marketResponse.data.quotes[symbol.toUpperCase()];
-    
-    if (quote && quote.ap > 0) {
-      return parseFloat(quote.ap);
-    } else {
-      throw new Error('No valid ask price available');
-    }
+    const response = await dataApiClientV2.get(`/stocks/trades/latest?symbols=${symbol.toUpperCase()}`);
+    const price = response.data.trades[symbol.toUpperCase()]?.p;
+    if (!price) throw new Error(`No quote found for ${symbol}`);
+    return price;
   } catch (error) {
-    console.warn(`Could not fetch market data for ${symbol}:`, error.message);
-    throw new Error('Unable to fetch current stock price');
+    console.error(`Error fetching stock price for ${symbol}:`, error.message);
+    throw new Error('Unable to fetch current stock price.');
   }
 }
 
 /**
- * Helper function to fetch options contracts
- * @param {string} symbol - Stock symbol
- * @param {string} optionType - 'call' or 'put'
- * @returns {array} - Array of options contracts
+ * Fetches available options contracts within a given date range.
+ * This function now uses the /options/contracts endpoint for clean, structured data.
+ * @param {string} symbol - The underlying stock ticker.
+ * @param {string} expirationDateGte - The start date for the search (YYYY-MM-DD).
+ * @param {string} expirationDateLte - The end date for the search (YYYY-MM-DD).
+ * @param {string} type - 'call' or 'put'.
+ * @returns {Promise<Array>} - A list of available contracts.
  */
-async function fetchOptionsContracts(symbol, optionType = null) {
+async function findContracts(symbol, expirationDateGte, expirationDateLte, type) {
   try {
-    const params = {
-      underlying_symbols: symbol.toUpperCase(),
-      limit: 100
-    };
+    let contracts = [];
+    let pageToken = null;
 
-    if (optionType && (optionType === 'call' || optionType === 'put')) {
-      params.type = optionType;
-    }
+    do {
+      const params = {
+        underlying_symbols: symbol,
+        limit: 100,
+        expiration_date_gte: expirationDateGte,
+        expiration_date_lte: expirationDateLte,
+        type: type,
+      };
+      if (pageToken) {
+        params.page_token = pageToken;
+      }
+      
+      const response = await paperApiClient.get(`/options/contracts`, { params });
+      
+      if (response.data.option_contracts) {
+          contracts = contracts.concat(response.data.option_contracts);
+      }
+      pageToken = response.data.next_page_token;
 
-    const contractsResponse = await alpacaClient.get('/options/contracts', { params });
-    return contractsResponse.data.option_contracts || [];
+    } while (pageToken);
+
+    return contracts;
   } catch (error) {
-    console.error(`Error fetching options contracts for ${symbol}:`, error);
-    throw new Error(`Unable to fetch options contracts for ${symbol}`);
+    console.error(`Error fetching options contracts for ${symbol}:`, error.message);
+    throw new Error(`Unable to fetch options contracts for ${symbol}.`);
   }
 }
 
-module.exports = { router, getCurrentStockPrice, fetchOptionsContracts };
+/**
+ * Gets the latest price for a single, specific options contract.
+ * @param {string} optionSymbol - The full symbol of the options contract.
+ * @returns {Promise<number>} - The latest ask price for the contract.
+ */
+async function getOptionContractPrice(optionSymbol) {
+  try {
+
+    const params = {
+      symbols: optionSymbol
+    };
+
+    const response = await dataApiClientV1.get(`/options/snapshots`, { params });
+
+    // try ask price, then defer to latest trade price
+    const price = response.data.snapshots[optionSymbol].latestQuote.ap ?? response.data.snapshots[optionSymbol].latestTrade.p;
+    
+    return price; 
+  } catch (error) {
+    console.error(`Error fetching price for contract ${optionSymbol}:`, error.message);
+    throw new Error('Unable to fetch contract price.');
+  }
+}
+
+module.exports = {
+  getCurrentStockPrice,
+  findContracts,
+  getOptionContractPrice,
+};

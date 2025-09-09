@@ -13,7 +13,7 @@ function calculateTargetExpiryDate(position) {
   const targetDate = new Date();
   
   if (position === 'short') {
-    targetDate.setDate(targetDate.getDate() + 30);
+    targetDate.setDate(targetDate.getMonth() + 1);
   } else if (position === 'long') {
     targetDate.setMonth(targetDate.getMonth() + 6);
   } else {

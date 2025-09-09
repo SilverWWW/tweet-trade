@@ -2,7 +2,7 @@ const express = require('express');
 const axios = require('axios');
 const router = express.Router();
 
-const { getCurrentStockPrice, fetchOptionsContracts } = require('./market');
+const { getCurrentStockPrice, findContracts, getOptionContractPrice } = require('./market');
 
 const ALPACA_BASE_URL = 'https://paper-api.alpaca.markets/v2';
 const ALPACA_API_KEY = process.env.ALPACA_API_KEY;
@@ -16,6 +16,29 @@ const alpacaClient = axios.create({
     'Content-Type': 'application/json'
   }
 });
+
+/**
+ * Helper function to check if current time is within US stock market hours
+ * Market hours: Monday-Friday, 9:30 AM - 4:00 PM ET
+ * @returns {boolean} - True if market is open, false otherwise
+ */
+function isMarketOpen() {
+  const now = new Date();
+  const etTime = new Date(now.toLocaleString("en-US", {timeZone: "America/New_York"}));
+  const dayOfWeek = etTime.getDay();
+  if (dayOfWeek < 1 || dayOfWeek > 5) {
+    return false;
+  }
+  const hours = etTime.getHours();
+  const minutes = etTime.getMinutes();
+  const timeInMinutes = hours * 60 + minutes;
+  
+  // Market hours: 9:30 AM (570 minutes) to 4:00 PM (960 minutes)
+  const marketOpenMinutes = 9 * 60 + 30; // 9:30 AM
+  const marketCloseMinutes = 16 * 60; // 4:00 PM
+  
+  return timeInMinutes >= marketOpenMinutes && timeInMinutes < marketCloseMinutes;
+}
 
 /**
  * Helper function to validate and format target expiration date
@@ -52,7 +75,18 @@ function selectBestContract(contracts, targetExpirationDate, currentPrice) {
     throw new Error('No contracts available for selection');
   }
 
-  const sortedContracts = contracts.sort((a, b) => {
+  // Filter out contracts with more than 25% away from current price
+  const reasonableContracts = contracts.filter(contract => {
+    const strikePrice = parseFloat(contract.strike_price);
+    const priceDiff = Math.abs(strikePrice - currentPrice);
+    const priceDiffPercent = (priceDiff / currentPrice) * 100;
+    return priceDiffPercent <= 25; // within 25% of current price
+  });
+  // if no reasonable contracts, use all contracts
+  const contractsToSort = reasonableContracts.length > 0 ? reasonableContracts : contracts;
+
+  const sortedContracts = contractsToSort.sort((a, b) => {
+    // Primary sort: expiration date proximity to target
     const dateDiffA = Math.abs(new Date(a.expiration_date) - new Date(targetExpirationDate));
     const dateDiffB = Math.abs(new Date(b.expiration_date) - new Date(targetExpirationDate));
     
@@ -60,6 +94,7 @@ function selectBestContract(contracts, targetExpirationDate, currentPrice) {
       return dateDiffA - dateDiffB;
     }
     
+    // Secondary sort: strike price proximity to current price (but less weight)
     const priceDiffA = Math.abs(parseFloat(a.strike_price) - currentPrice);
     const priceDiffB = Math.abs(parseFloat(b.strike_price) - currentPrice);
     
@@ -116,28 +151,44 @@ function validateCommonParams(params) {
  */
 async function createOptionsOrder(ticker, amount, targetExpiryDate, optionType) {
   const currentPrice = await getCurrentStockPrice(ticker);
-  const contracts = await fetchOptionsContracts(ticker, optionType);
-  const validatedExpiryDate = validateTargetExpirationDate(targetExpiryDate);
+
+  const searchEndDate = new Date(targetExpiryDate);
+  searchEndDate.setDate(searchEndDate.getMonth() + 3);
+  const searchEndDateStr = searchEndDate.toISOString().split('T')[0];
+
+  const contracts = await findContracts(
+    ticker,
+    targetExpiryDate,
+    searchEndDateStr,
+    optionType
+  );
 
   if (!contracts || contracts.length === 0) {
-    throw new Error(`No ${optionType} options contracts found for ${ticker}`);
+    throw new Error(`No ${optionType} options contracts found for ${ticker} near ${targetExpiryDate}`);
   }
 
-  const bestContract = selectBestContract(contracts, validatedExpiryDate, currentPrice);
+  const bestContract = selectBestContract(contracts, targetExpiryDate, currentPrice);
+
+  const contractPrice = await getOptionContractPrice(bestContract.symbol);
   
-  const contractPrice = parseFloat(bestContract.close_price) || 1.0;
-  const quantity = Math.floor(amount / contractPrice);
+  const costPerOption = contractPrice * 100; 
+
+  if (costPerOption <= 0) {
+    throw new Error(`The selected contract ${bestContract.symbol} has a non-positive price and cannot be traded.`);
+  }
+
+  const quantity = Math.floor(amount / costPerContract);
   
   if (quantity <= 0) {
-    throw new Error(`Amount ${amount} is too small for options contract priced at $${contractPrice}`);
+    throw new Error(`Investment of $${amount} is too small to buy a contract priced at $${contractPrice.toFixed(2)} (total cost $${costPerOption.toFixed(2)}).`);
   }
 
   const orderPayload = {
     symbol: bestContract.symbol,
-    qty: quantity.toString(),
+    qty: quantity,
     side: 'buy',
     type: 'market',
-    time_in_force: 'day'
+    time_in_force: 'day',
   };
 
   const response = await alpacaClient.post('/orders', orderPayload);
@@ -175,6 +226,13 @@ async function createOptionsOrder(ticker, amount, targetExpiryDate, optionType) 
  * @returns {object} 500 - Server error
  */
 router.post('/option/buy/:type', async (req, res) => {
+  if (!isMarketOpen()) {
+    return res.status(400).json({
+      error: 'Market is closed',
+      message: 'Trading is only allowed during market hours (Monday-Friday, 9:30 AM - 4:00 PM ET)'
+    });
+  }
+
   try {
     const { type } = req.params;
     const { ticker, amount, target_expiry_date } = req.body;
@@ -237,6 +295,13 @@ router.post('/option/buy/:type', async (req, res) => {
  * @returns {object} 500 - Server error
  */
 router.delete('/option/close/:symbol', async (req, res) => {
+  if (!isMarketOpen()) {
+    return res.status(400).json({
+      error: 'Market is closed',
+      message: 'Trading is only allowed during market hours (Monday-Friday, 9:30 AM - 4:00 PM ET)'
+    });
+  }
+  
   try {
     const { symbol } = req.params;
     const { percentage } = req.body;

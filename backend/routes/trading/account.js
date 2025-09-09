@@ -129,32 +129,6 @@ router.get('/orders', async (req, res) => {
 });
 
 /**
- * GET /api/trading/account/orders/open
- * Get only open orders (convenience endpoint)
- * 
- * @returns {object} 200 - Open orders retrieved successfully
- * @returns {object} 400 - Invalid parameters
- * @returns {object} 500 - Server error
- */
-router.get('/orders/open', async (req, res) => {
-  req.query.status = 'open';
-  return router.handle(req, res);
-});
-
-/**
- * GET /api/trading/account/orders/closed
- * Get only closed orders (convenience endpoint)
- * 
- * @returns {object} 200 - Closed orders retrieved successfully
- * @returns {object} 400 - Invalid parameters
- * @returns {object} 500 - Server error
- */
-router.get('/orders/closed', async (req, res) => {
-  req.query.status = 'closed';
-  return router.handle(req, res);
-});
-
-/**
  * GET /api/trading/account/positions
  * Get all open positions for the account
  * 
