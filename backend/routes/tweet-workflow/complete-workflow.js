@@ -4,6 +4,8 @@ const router = express.Router();
 
 const sql = neon(process.env.DATABASE_URL);
 
+const { isMarketOpen } = require('../trading/market');
+
 /**
  * Helper function to calculate target expiry date based on position
  * @param {string} position - 'long' or 'short'

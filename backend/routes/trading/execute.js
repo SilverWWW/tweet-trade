@@ -2,7 +2,7 @@ const express = require('express');
 const axios = require('axios');
 const router = express.Router();
 
-const { getCurrentStockPrice, findContracts, getOptionContractPrice } = require('./market');
+const { isMarketOpen, getCurrentStockPrice, findContracts, getOptionContractPrice } = require('./market');
 
 const ALPACA_BASE_URL = 'https://paper-api.alpaca.markets/v2';
 const ALPACA_API_KEY = process.env.ALPACA_API_KEY;
@@ -16,29 +16,6 @@ const alpacaClient = axios.create({
     'Content-Type': 'application/json'
   }
 });
-
-/**
- * Helper function to check if current time is within US stock market hours
- * Market hours: Monday-Friday, 9:30 AM - 4:00 PM ET
- * @returns {boolean} - True if market is open, false otherwise
- */
-function isMarketOpen() {
-  const now = new Date();
-  const etTime = new Date(now.toLocaleString("en-US", {timeZone: "America/New_York"}));
-  const dayOfWeek = etTime.getDay();
-  if (dayOfWeek < 1 || dayOfWeek > 5) {
-    return false;
-  }
-  const hours = etTime.getHours();
-  const minutes = etTime.getMinutes();
-  const timeInMinutes = hours * 60 + minutes;
-  
-  // Market hours: 9:30 AM (570 minutes) to 4:00 PM (960 minutes)
-  const marketOpenMinutes = 9 * 60 + 30; // 9:30 AM
-  const marketCloseMinutes = 16 * 60; // 4:00 PM
-  
-  return timeInMinutes >= marketOpenMinutes && timeInMinutes < marketCloseMinutes;
-}
 
 /**
  * Helper function to validate and format target expiration date
