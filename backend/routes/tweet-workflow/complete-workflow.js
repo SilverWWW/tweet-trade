@@ -1,10 +1,35 @@
 const express = require('express');
 const { neon } = require('@neondatabase/serverless');
+const axios = require('axios');
 const router = express.Router();
 
 const sql = neon(process.env.DATABASE_URL);
 
 const { isMarketOpen } = require('../trading/market');
+
+/**
+ * Helper function to execute a buy order via API call
+ * @param {string} ticker - Stock ticker symbol
+ * @param {string} contract - 'call' or 'put'
+ * @param {number} amount - Dollar amount to invest
+ * @param {string} targetExpiryDate - Target expiration date
+ * @returns {Promise<object>} - API response
+ */
+async function executeBuyOrder(ticker, contract, amount, targetExpiryDate) {
+  try {
+    const baseUrl = process.env.API_BASE_URL;
+    const response = await axios.post(`${baseUrl}/api/trading/execute/option/buy/${contract}`, {
+      ticker,
+      amount,
+      target_expiry_date: targetExpiryDate
+    });
+    
+    return response.data;
+  } catch (error) {
+    console.error(`Error executing buy order for ${ticker}:`, error.response?.data || error.message);
+    throw error;
+  }
+}
 
 /**
  * Helper function to calculate target expiry date based on position
@@ -52,20 +77,44 @@ async function processTrades(tweet_process_id, trades) {
       
       const targetExpiryDate = calculateTargetExpiryDate(position);
       const contract = action === 'buy' ? 'call' : 'put';
-      const amount = 1000;
-      
-      try {
-        await sql`
-          INSERT INTO trades_queued (
-            tweet_process_id, ticker, contract, amount, target_expiry_date, reasoning
-          ) VALUES (
-            ${tweet_process_id}, ${stock_ticker}, ${contract}, ${amount}, ${targetExpiryDate}, ${reasoning}
-          )
-        `;
-        
-        console.log(`Successfully queued trade for ${stock_ticker} (${contract})`);
-      } catch (dbError) {
-        console.error(`Error inserting trade for ${stock_ticker}:`, dbError);
+      const amount = 10000;
+
+      if (isMarketOpen()) {
+        try {
+          // Execute the buy order immediately
+          const orderResult = await executeBuyOrder(stock_ticker, contract, amount, targetExpiryDate);
+          console.log(`Successfully executed trade for ${stock_ticker} (${contract}):`, orderResult);
+        } catch (orderError) {
+          console.error(`Error executing trade for ${stock_ticker}:`, orderError);
+          // If execution fails, fall back to queuing
+          try {
+            await sql`
+              INSERT INTO trades_queued (
+                tweet_process_id, ticker, contract, amount, target_expiry_date, reasoning
+              ) VALUES (
+                ${tweet_process_id}, ${stock_ticker}, ${contract}, ${amount}, ${targetExpiryDate}, ${reasoning}
+              )
+            `;
+            console.log(`Fallback: Successfully queued trade for ${stock_ticker} (${contract}) after execution failed`);
+          } catch (dbError) {
+            console.error(`Error inserting trade for ${stock_ticker} after execution failed:`, dbError);
+          }
+        }
+      } else {
+        try {
+          // Market is closed, queue the trade
+          await sql`
+            INSERT INTO trades_queued (
+              tweet_process_id, ticker, contract, amount, target_expiry_date, reasoning
+            ) VALUES (
+              ${tweet_process_id}, ${stock_ticker}, ${contract}, ${amount}, ${targetExpiryDate}, ${reasoning}
+            )
+          `;
+          
+          console.log(`Market closed: Successfully queued trade for ${stock_ticker} (${contract})`);
+        } catch (dbError) {
+          console.error(`Error inserting trade for ${stock_ticker}:`, dbError);
+        }
       }
     }
   } catch (error) {
