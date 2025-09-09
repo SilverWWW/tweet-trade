@@ -18,7 +18,12 @@ const { isMarketOpen } = require('../trading/market');
 async function executeBuyOrder(ticker, contract, amount, targetExpiryDate) {
   try {
     const baseUrl = process.env.DEPLOYMENT_URL;
-    const response = await axios.post(`${baseUrl}/api/trading/execute/option/buy/${contract}`, {
+
+    const optionsUrl = baseUrl.startsWith("localhost")
+      ? `http://${baseUrl}/api/trading/execute/option/buy/${contract}`
+      : `https://${baseUrl}/api/trading/execute/option/buy/${contract}`;
+
+    const response = await axios.post(optionsUrl, {
       ticker,
       amount,
       target_expiry_date: targetExpiryDate
