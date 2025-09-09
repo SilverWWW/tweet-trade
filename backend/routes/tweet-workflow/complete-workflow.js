@@ -32,6 +32,58 @@ async function executeBuyOrder(ticker, contract, amount, targetExpiryDate) {
 }
 
 /**
+ * Helper function to queue a trade in the database
+ * @param {string} tweetProcessId - The tweet process ID
+ * @param {string} ticker - Stock ticker symbol
+ * @param {string} contract - 'call' or 'put'
+ * @param {number} amount - Dollar amount to invest
+ * @param {string} targetExpiryDate - Target expiration date
+ * @param {string} reasoning - Trade reasoning
+ * @returns {Promise<void>}
+ */
+async function queueTrade(tweetProcessId, ticker, contract, amount, targetExpiryDate, reasoning) {
+  try {
+    await sql`
+      INSERT INTO trades_queued (
+        tweet_process_id, ticker, contract, amount, target_expiry_date, reasoning
+      ) VALUES (
+        ${tweetProcessId}, ${ticker}, ${contract}, ${amount}, ${targetExpiryDate}, ${reasoning}
+      )
+    `;
+    console.log(`Successfully queued trade for ${ticker} (${contract})`);
+  } catch (error) {
+    console.error(`Error queuing trade for ${ticker}:`, error);
+    throw error;
+  }
+}
+
+/**
+ * Helper function to log an executed trade in the database
+ * @param {string} tweetProcessId - The tweet process ID
+ * @param {string} symbol - Full option symbol (e.g., AAPL349284924...)
+ * @param {string} contract - 'call' or 'put'
+ * @param {number} amount - Total money spent (from order confirmation)
+ * @param {string} reasoning - Trade reasoning
+ * @param {string} expiryDate - Actual expiry date from the executed contract
+ * @returns {Promise<void>}
+ */
+async function logExecutedTrade(tweetProcessId, symbol, contract, amount, reasoning, expiryDate) {
+  try {
+    await sql`
+      INSERT INTO trades_executed (
+        tweet_process_id, symbol, contract, amount, reasoning, expiry_date
+      ) VALUES (
+        ${tweetProcessId}, ${symbol}, ${contract}, ${amount}, ${reasoning}, ${expiryDate}
+      )
+    `;
+    console.log(`Successfully logged executed trade for ${symbol} (${contract})`);
+  } catch (error) {
+    console.error(`Error logging executed trade for ${symbol}:`, error);
+    throw error;
+  }
+}
+
+/**
  * Helper function to calculate target expiry date based on position
  * @param {string} position - 'long' or 'short'
  * @returns {string} - Target expiry date in YYYY-MM-DD format
@@ -84,36 +136,41 @@ async function processTrades(tweet_process_id, trades) {
           // Execute the buy order immediately
           const orderResult = await executeBuyOrder(stock_ticker, contract, amount, targetExpiryDate);
           console.log(`Successfully executed trade for ${stock_ticker} (${contract}):`, orderResult);
+          
+          // Log the executed trade to trades_executed table
+          try {
+            const fullOptionSymbol = orderResult.requested.contract.symbol;
+            const actualExpiryDate = orderResult.requested.contract.expiration_date;
+            const totalAmountSpent = orderResult.requested.quantity * (orderResult.requested.contract.close_price * 100);
+            
+            await logExecutedTrade(
+              tweet_process_id,
+              fullOptionSymbol,
+              contract,
+              totalAmountSpent,
+              reasoning,
+              actualExpiryDate
+            );
+          } catch (logError) {
+            console.error(`Error logging executed trade for ${stock_ticker}:`, logError);
+          }
         } catch (orderError) {
           console.error(`Error executing trade for ${stock_ticker}:`, orderError);
           // If execution fails, fall back to queuing
           try {
-            await sql`
-              INSERT INTO trades_queued (
-                tweet_process_id, ticker, contract, amount, target_expiry_date, reasoning
-              ) VALUES (
-                ${tweet_process_id}, ${stock_ticker}, ${contract}, ${amount}, ${targetExpiryDate}, ${reasoning}
-              )
-            `;
+            await queueTrade(tweet_process_id, stock_ticker, contract, amount, targetExpiryDate, reasoning);
             console.log(`Fallback: Successfully queued trade for ${stock_ticker} (${contract}) after execution failed`);
-          } catch (dbError) {
-            console.error(`Error inserting trade for ${stock_ticker} after execution failed:`, dbError);
+          } catch (queueError) {
+            console.error(`Error queuing trade for ${stock_ticker} after execution failed:`, queueError);
           }
         }
       } else {
         try {
           // Market is closed, queue the trade
-          await sql`
-            INSERT INTO trades_queued (
-              tweet_process_id, ticker, contract, amount, target_expiry_date, reasoning
-            ) VALUES (
-              ${tweet_process_id}, ${stock_ticker}, ${contract}, ${amount}, ${targetExpiryDate}, ${reasoning}
-            )
-          `;
-          
+          await queueTrade(tweet_process_id, stock_ticker, contract, amount, targetExpiryDate, reasoning);
           console.log(`Market closed: Successfully queued trade for ${stock_ticker} (${contract})`);
-        } catch (dbError) {
-          console.error(`Error inserting trade for ${stock_ticker}:`, dbError);
+        } catch (queueError) {
+          console.error(`Error queuing trade for ${stock_ticker}:`, queueError);
         }
       }
     }
