@@ -175,7 +175,7 @@ async function createOptionsOrder(ticker, amount, targetExpiryDate, optionType) 
     requested: {
       ticker: ticker.toUpperCase(),
       amount: amount,
-      target_expiry_date: validatedExpiryDate,
+      target_expiry_date: targetExpiryDate,
       quantity: quantity,
       contract: {
         symbol: bestContract.symbol,
