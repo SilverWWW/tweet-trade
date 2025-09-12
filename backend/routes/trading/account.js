@@ -2,6 +2,8 @@ const express = require('express');
 const axios = require('axios');
 const router = express.Router();
 
+const { isMarketOpen } = require('./market');
+
 const ALPACA_BASE_URL = 'https://paper-api.alpaca.markets/v2';
 const ALPACA_API_KEY = process.env.ALPACA_API_KEY;
 const ALPACA_SECRET_KEY = process.env.ALPACA_SECRET_KEY;
@@ -201,6 +203,159 @@ router.get('/positions', async (req, res) => {
     res.status(500).json({
       error: 'Internal server error',
       message: 'Failed to fetch positions'
+    });
+  }
+});
+
+/**
+ * DELETE /api/trading/account/positions/:symbol
+ * Close a position by symbol and percentage
+ * 
+ * @param {string} symbol - Position symbol (required)
+ * @param {number} percentage - Percentage of position to close (required, 0-100)
+ * 
+ * @returns {object} 200 - Position closed successfully
+ * @returns {object} 400 - Invalid parameters or market closed
+ * @returns {object} 404 - Position not found
+ * @returns {object} 500 - Server error
+ */
+router.delete('/close-positions/:symbol', async (req, res) => {
+  if (!isMarketOpen()) {
+    return res.status(400).json({
+      error: 'Market is closed',
+      message: 'Trading is only allowed during market hours (Monday-Friday, 9:30 AM - 4:00 PM ET)'
+    });
+  }
+  
+  try {
+    const { symbol } = req.params;
+    const { percentage } = req.body;
+
+    if (!symbol || typeof symbol !== 'string' || symbol.length === 0) {
+      return res.status(400).json({
+        error: 'Invalid symbol parameter',
+        message: 'Symbol must be a non-empty string'
+      });
+    }
+
+    if (!percentage || percentage < 0 || percentage > 100) {
+      return res.status(400).json({
+        error: 'Invalid percentage parameter',
+        message: 'Percentage must be between 0 and 100'
+      });
+    }
+
+    if (!ALPACA_API_KEY || !ALPACA_SECRET_KEY) {
+      return res.status(500).json({
+        error: 'Configuration error',
+        message: 'Alpaca API credentials not configured'
+      });
+    }
+
+    const response = await alpacaClient.delete(`/positions/${encodeURIComponent(symbol)}`, {
+      data: {
+        percentage: percentage.toString()
+      }
+    });
+
+    res.status(200).json({
+      success: true,
+      message: `Position closed for ${symbol} (${percentage}%)`,
+      order: response.data,
+      requested: {
+        symbol: symbol,
+        percentage: percentage
+      }
+    });
+
+  } catch (error) {
+    console.error('Error closing position:', error);
+
+    if (error.response) {
+      const statusCode = error.response.status;
+      const errorData = error.response.data;
+
+      if (statusCode === 404) {
+        return res.status(404).json({
+          error: 'Position not found',
+          message: `No open position found for symbol: ${req.params.symbol}`
+        });
+      }
+
+      return res.status(statusCode).json({
+        error: 'Alpaca API error',
+        message: errorData.message || 'Failed to close position',
+        details: errorData
+      });
+    }
+
+    res.status(500).json({
+      error: 'Internal server error',
+      message: 'Failed to close position'
+    });
+  }
+});
+
+/**
+ * DELETE /api/trading/account/positions
+ * Close all open positions
+ * 
+ * @param {boolean} cancel_orders - If true, cancel all open orders before liquidating positions (optional, default: false)
+ * 
+ * @returns {object} 207 - Multi-status response with results for each position
+ * @returns {object} 400 - Market closed
+ * @returns {object} 500 - Server error
+ */
+router.delete('/close-all-positions', async (req, res) => {
+  if (!isMarketOpen()) {
+    return res.status(400).json({
+      error: 'Market is closed',
+      message: 'Trading is only allowed during market hours (Monday-Friday, 9:30 AM - 4:00 PM ET)'
+    });
+  }
+  
+  try {
+    const { cancel_orders = false } = req.body;
+
+    if (!ALPACA_API_KEY || !ALPACA_SECRET_KEY) {
+      return res.status(500).json({
+        error: 'Configuration error',
+        message: 'Alpaca API credentials not configured'
+      });
+    }
+
+    const response = await alpacaClient.delete('/positions', {
+      data: {
+        cancel_orders: cancel_orders
+      }
+    });
+
+    res.status(207).json({
+      success: true,
+      message: 'All positions closed successfully',
+      results: response.data,
+      requested: {
+        cancel_orders: cancel_orders
+      }
+    });
+
+  } catch (error) {
+    console.error('Error closing all positions:', error);
+
+    if (error.response) {
+      const statusCode = error.response.status;
+      const errorData = error.response.data;
+
+      return res.status(statusCode).json({
+        error: 'Alpaca API error',
+        message: errorData.message || 'Failed to close all positions',
+        details: errorData
+      });
+    }
+
+    res.status(500).json({
+      error: 'Internal server error',
+      message: 'Failed to close all positions'
     });
   }
 });

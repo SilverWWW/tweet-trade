@@ -8,25 +8,22 @@ const sql = neon(process.env.DATABASE_URL);
 const { isMarketOpen } = require('../trading/market');
 
 /**
- * Helper function to execute a buy order via API call
+ * Helper function to execute a stock buy order via API call
  * @param {string} ticker - Stock ticker symbol
- * @param {string} contract - 'call' or 'put'
- * @param {number} amount - Dollar amount to invest
- * @param {string} targetExpiryDate - Target expiration date
+ * @param {number} dollarAmount - Dollar amount to invest
  * @returns {Promise<object>} - API response
  */
-async function executeBuyOrder(ticker, contract, amount, targetExpiryDate) {
+async function executeBuyOrder(ticker, dollarAmount) {
   try {
     const baseUrl = process.env.DEPLOYMENT_URL;
 
-    const optionsUrl = baseUrl.startsWith("localhost")
-      ? `http://${baseUrl}/api/trading/execute/option/buy/${contract}`
-      : `https://${baseUrl}/api/trading/execute/option/buy/${contract}`;
+    const orderUrl = baseUrl.startsWith("localhost")
+      ? `http://${baseUrl}/api/trading/execute/stock/buy`
+      : `https://${baseUrl}/api/trading/execute/stock/buy`;
 
-    const response = await axios.post(optionsUrl, {
+    const response = await axios.post(orderUrl, {
       ticker,
-      amount,
-      target_expiry_date: targetExpiryDate
+      dollarAmount
     });
     
     return response.data;
@@ -40,22 +37,21 @@ async function executeBuyOrder(ticker, contract, amount, targetExpiryDate) {
  * Helper function to queue a trade in the database
  * @param {string} tweetProcessId - The tweet process ID
  * @param {string} ticker - Stock ticker symbol
- * @param {string} contract - 'call' or 'put'
- * @param {number} amount - Dollar amount to invest
- * @param {string} targetExpiryDate - Target expiration date
+ * @param {number} dollar_amount - Dollar amount to invest
+ * @param {number} days_to_hold - Number of days to hold the position
  * @param {string} reasoning - Trade reasoning
  * @returns {Promise<void>}
  */
-async function queueTrade(tweetProcessId, ticker, contract, amount, targetExpiryDate, reasoning) {
+async function queueTrade(tweetProcessId, ticker, dollar_amount, days_to_hold, reasoning) {
   try {
     await sql`
       INSERT INTO trades_queued (
-        tweet_process_id, ticker, contract, amount, target_expiry_date, reasoning
+        tweet_process_id, ticker, dollar_amount, days_to_hold, reasoning
       ) VALUES (
-        ${tweetProcessId}, ${ticker}, ${contract}, ${amount}, ${targetExpiryDate}, ${reasoning}
+        ${tweetProcessId}, ${ticker}, ${dollar_amount}, ${days_to_hold}, ${reasoning}
       )
     `;
-    console.log(`Successfully queued trade for ${ticker} (${contract})`);
+    console.log(`Successfully queued trade for ${ticker}`);
   } catch (error) {
     console.error(`Error queuing trade for ${ticker}:`, error);
     throw error;
@@ -65,46 +61,26 @@ async function queueTrade(tweetProcessId, ticker, contract, amount, targetExpiry
 /**
  * Helper function to log an executed trade in the database
  * @param {string} tweetProcessId - The tweet process ID
- * @param {string} symbol - Full option symbol (e.g., AAPL349284924...)
- * @param {string} contract - 'call' or 'put'
- * @param {number} amount - Total money spent (from order confirmation)
+ * @param {string} ticker - Stock ticker symbol
+ * @param {number} dollar_amount - Total money spent (from order confirmation)
  * @param {string} reasoning - Trade reasoning
- * @param {string} expiryDate - Actual expiry date from the executed contract
+ * @param {number} days_to_hold - Number of days to hold the position
  * @returns {Promise<void>}
  */
-async function logExecutedTrade(tweetProcessId, symbol, contract, amount, reasoning, expiryDate) {
+async function logExecutedTrade(tweetProcessId, ticker, dollar_amount, reasoning, days_to_hold) {
   try {
     await sql`
       INSERT INTO trades_executed (
-        tweet_process_id, symbol, contract, amount, reasoning, expiry_date
+        tweet_process_id, ticker, dollar_amount, reasoning, days_to_hold
       ) VALUES (
-        ${tweetProcessId}, ${symbol}, ${contract}, ${amount}, ${reasoning}, ${expiryDate}
+        ${tweetProcessId}, ${ticker}, ${dollar_amount}, ${reasoning}, ${days_to_hold}
       )
     `;
-    console.log(`Successfully logged executed trade for ${symbol} (${contract})`);
+    console.log(`Successfully logged executed trade for ${ticker}`);
   } catch (error) {
-    console.error(`Error logging executed trade for ${symbol}:`, error);
+    console.error(`Error logging executed trade for ${ticker}:`, error);
     throw error;
   }
-}
-
-/**
- * Helper function to calculate target expiry date based on position
- * @param {string} position - 'long' or 'short'
- * @returns {string} - Target expiry date in YYYY-MM-DD format
- */
-function calculateTargetExpiryDate(position) {
-  const targetDate = new Date();
-  
-  if (position === 'short') {
-    targetDate.setDate(targetDate.getMonth() + 1);
-  } else if (position === 'long') {
-    targetDate.setMonth(targetDate.getMonth() + 6);
-  } else {
-    throw new Error('Invalid position. Must be "long" or "short"');
-  }
-  
-  return targetDate.toISOString().split('T')[0];
 }
 
 /**
@@ -115,46 +91,30 @@ function calculateTargetExpiryDate(position) {
 async function processTrades(tweet_process_id, trades) {
   try {
     for (const trade of trades) {
-      const { action, position, reasoning, confidence, stock_ticker } = trade;
+      const { timeline, reasoning, confidence, stock_ticker } = trade;
       
-      if (!action || !position || !reasoning || !stock_ticker) {
+      if (!timeline || !reasoning || !stock_ticker || !confidence) {
         console.error('Invalid trade object:', trade);
         continue;
       }
-      
-      if (action !== 'buy' && action !== 'sell') {
-        console.error('Invalid action:', action);
-        continue;
-      }
-      
-      if (position !== 'long' && position !== 'short') {
-        console.error('Invalid position:', position);
-        continue;
-      }
-      
-      const targetExpiryDate = calculateTargetExpiryDate(position);
-      const contract = action === 'buy' ? 'call' : 'put';
-      const amount = 2000;
+
+      const dollarAmount = 1000 * confidence;
+      const daysToHold = timeline;
 
       if (isMarketOpen()) {
         try {
-          // Execute the buy order immediately
-          const orderResult = await executeBuyOrder(stock_ticker, contract, amount, targetExpiryDate);
-          console.log(`Successfully executed trade for ${stock_ticker} (${contract}):`, orderResult);
+          const orderResult = await executeBuyOrder(stock_ticker, dollarAmount);
+          console.log(`Successfully executed trade for ${stock_ticker}:`, orderResult);
           
-          // Log the executed trade to trades_executed table
           try {
-            const fullOptionSymbol = orderResult.requested.contract.symbol;
-            const actualExpiryDate = orderResult.requested.contract.expiration_date;
-            const totalAmountSpent = orderResult.requested.quantity * (orderResult.requested.contract.close_price * 100);
+            const totalAmountSpent = orderResult.requested.dollarAmount;
             
             await logExecutedTrade(
               tweet_process_id,
-              fullOptionSymbol,
-              contract,
+              stock_ticker,
               totalAmountSpent,
               reasoning,
-              actualExpiryDate
+              daysToHold
             );
           } catch (logError) {
             console.error(`Error logging executed trade for ${stock_ticker}:`, logError);
@@ -163,8 +123,8 @@ async function processTrades(tweet_process_id, trades) {
           console.error(`Error executing trade for ${stock_ticker}:`, orderError);
           // If execution fails, fall back to queuing
           try {
-            await queueTrade(tweet_process_id, stock_ticker, contract, amount, targetExpiryDate, reasoning);
-            console.log(`Fallback: Successfully queued trade for ${stock_ticker} (${contract}) after execution failed`);
+            await queueTrade(tweet_process_id, stock_ticker, dollarAmount, daysToHold, reasoning);
+            console.log(`Fallback: Successfully queued trade for ${stock_ticker} after execution failed`);
           } catch (queueError) {
             console.error(`Error queuing trade for ${stock_ticker} after execution failed:`, queueError);
           }
@@ -172,8 +132,8 @@ async function processTrades(tweet_process_id, trades) {
       } else {
         try {
           // Market is closed, queue the trade
-          await queueTrade(tweet_process_id, stock_ticker, contract, amount, targetExpiryDate, reasoning);
-          console.log(`Market closed: Successfully queued trade for ${stock_ticker} (${contract})`);
+          await queueTrade(tweet_process_id, stock_ticker, dollarAmount, daysToHold, reasoning);
+          console.log(`Market closed: Successfully queued trade for ${stock_ticker}`);
         } catch (queueError) {
           console.error(`Error queuing trade for ${stock_ticker}:`, queueError);
         }

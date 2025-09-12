@@ -32,7 +32,8 @@ const healthRoutes = require('./routes/health');
 const triggerWorkflowRoutes = require('./routes/tweet-workflow/trigger-workflow');
 const completeWorkflowRoutes = require('./routes/tweet-workflow/complete-workflow');
 const authorRoutes = require('./routes/authors/authors');
-const executeRoutes = require('./routes/trading/execute');
+const executeOptionRoutes = require('./routes/trading/execute/option');
+const executeStockRoutes = require('./routes/trading/execute/stock');
 const accountRoutes = require('./routes/trading/account');
 
 // Use routes
@@ -40,7 +41,8 @@ app.use('/api/health', healthRoutes);
 app.use('/api/process-tweet', triggerWorkflowRoutes);
 app.use('/api/process-tweet', completeWorkflowRoutes);
 app.use('/api/authors', authorRoutes);
-app.use('/api/trading/execute', executeRoutes);
+app.use('/api/trading/execute/option', executeOptionRoutes);
+app.use('/api/trading/execute/stock', executeStockRoutes);
 app.use('/api/trading/account', accountRoutes);
 
 // Root endpoint

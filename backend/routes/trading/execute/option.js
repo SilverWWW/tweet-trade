@@ -2,7 +2,7 @@ const express = require('express');
 const axios = require('axios');
 const router = express.Router();
 
-const { isMarketOpen, getCurrentStockPrice, findContracts, getOptionContractPrice } = require('./market');
+const { isMarketOpen, getCurrentStockPrice, findContracts, getOptionContractPrice } = require('../market');
 
 const ALPACA_BASE_URL = 'https://paper-api.alpaca.markets/v2';
 const ALPACA_API_KEY = process.env.ALPACA_API_KEY;
@@ -202,7 +202,7 @@ async function createOptionsOrder(ticker, amount, targetExpiryDate, optionType) 
  * @returns {object} 400 - Invalid parameters
  * @returns {object} 500 - Server error
  */
-router.post('/option/buy/:type', async (req, res) => {
+router.post('/buy/:type', async (req, res) => {
   if (!isMarketOpen()) {
     return res.status(400).json({
       error: 'Market is closed',
@@ -255,95 +255,6 @@ router.post('/option/buy/:type', async (req, res) => {
     res.status(500).json({
       error: 'Internal server error',
       message: error.message || `Failed to create ${req.params.type} option buy order`
-    });
-  }
-});
-
-/**
- * DELETE /api/trading/execute/option/close/:symbol
- * Close a position by symbol and percentage
- * 
- * @param {string} symbol - Options contract symbol (required)
- * @param {number} percentage - Percentage of position to close (required, 0-100)
- * 
- * @returns {object} 200 - Position closed successfully
- * @returns {object} 400 - Invalid parameters
- * @returns {object} 404 - Position not found
- * @returns {object} 500 - Server error
- */
-router.delete('/option/close/:symbol', async (req, res) => {
-  if (!isMarketOpen()) {
-    return res.status(400).json({
-      error: 'Market is closed',
-      message: 'Trading is only allowed during market hours (Monday-Friday, 9:30 AM - 4:00 PM ET)'
-    });
-  }
-  
-  try {
-    const { symbol } = req.params;
-    const { percentage } = req.body;
-
-    if (!symbol || typeof symbol !== 'string' || symbol.length === 0) {
-      return res.status(400).json({
-        error: 'Invalid symbol parameter',
-        message: 'Symbol must be a non-empty string'
-      });
-    }
-
-    if (!percentage || percentage < 0 || percentage > 100) {
-      return res.status(400).json({
-        error: 'Invalid percentage parameter',
-        message: 'Percentage must be between 0 and 100'
-      });
-    }
-
-    if (!ALPACA_API_KEY || !ALPACA_SECRET_KEY) {
-      return res.status(500).json({
-        error: 'Configuration error',
-        message: 'Alpaca API credentials not configured'
-      });
-    }
-
-    const response = await alpacaClient.delete(`/positions/${encodeURIComponent(symbol)}`, {
-      data: {
-        percentage: percentage.toString()
-      }
-    });
-
-    res.status(200).json({
-      success: true,
-      message: `Position closed for ${symbol} (${percentage}%)`,
-      order: response.data,
-      requested: {
-        symbol: symbol,
-        percentage: percentage
-      }
-    });
-
-  } catch (error) {
-    console.error('Error closing position:', error);
-
-    if (error.response) {
-      const statusCode = error.response.status;
-      const errorData = error.response.data;
-
-      if (statusCode === 404) {
-        return res.status(404).json({
-          error: 'Position not found',
-          message: `No open position found for symbol: ${req.params.symbol}`
-        });
-      }
-
-      return res.status(statusCode).json({
-        error: 'Alpaca API error',
-        message: errorData.message || 'Failed to close position',
-        details: errorData
-      });
-    }
-
-    res.status(500).json({
-      error: 'Internal server error',
-      message: 'Failed to close position'
     });
   }
 });
