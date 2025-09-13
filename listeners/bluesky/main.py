@@ -27,7 +27,7 @@ async def fetch_subscribed_authors():
     Populates the global SUBSCRIBED_AUTHORS_DATA dictionary and
     returns a list of bsky_dids for websocket subscription.
     """
-    authors_endpoint = f"{API_BASE_URL}authors/get-bsky-authors"
+    authors_endpoint = f"{API_BASE_URL}authors/bluesky"
     logging.info(f"Fetching authors from API at {authors_endpoint}")
     try:
         async with httpx.AsyncClient() as client:
@@ -40,7 +40,7 @@ async def fetch_subscribed_authors():
             SUBSCRIBED_AUTHORS_DATA.clear()
             bsky_dids = []
             for author in authors:
-                did = author.get('bsky_did')
+                did = author.get('platform_id')
                 if did:
                     bsky_dids.append(did)
                     SUBSCRIBED_AUTHORS_DATA[did] = {

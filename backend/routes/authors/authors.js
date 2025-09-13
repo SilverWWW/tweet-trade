@@ -6,7 +6,7 @@ const router = express.Router();
 const sql = neon(process.env.DATABASE_URL);
 
 /**
- * Endpoint to add a new author to the subscribed_authors_bsky table.
+ * Endpoint to add a new author to the subscribed_authors table.
  * @route POST /api/authors/add-bsky-author
  * @param {string} username - The author's BlueSky username (handle).
  * @param {string} name - The author's display name.
@@ -47,7 +47,7 @@ router.post('/add-bsky-author', async (req, res) => {
     }
     
     const [existingAuthor] = await sql`
-      SELECT id FROM subscribed_authors_bsky WHERE bsky_did = ${bsky_did}
+      SELECT id FROM subscribed_authors WHERE platform_id = ${bsky_did}
     `;
 
     if (existingAuthor) {
@@ -57,7 +57,7 @@ router.post('/add-bsky-author', async (req, res) => {
     }
 
     const [newAuthor] = await sql`
-      INSERT INTO subscribed_authors_bsky (bsky_did, name, author_context)
+      INSERT INTO subscribed_authors (platform_id, name, author_context)
       VALUES (${bsky_did}, ${name}, ${author_context})
       RETURNING id
     `;
@@ -66,7 +66,7 @@ router.post('/add-bsky-author', async (req, res) => {
       success: true,
       message: "Author added successfully.",
       id: newAuthor.id,
-      bsky_did: bsky_did,
+      platform_id: bsky_did,
       username: cleanUsername
     });
   } catch (error) {
@@ -76,16 +76,37 @@ router.post('/add-bsky-author', async (req, res) => {
 });
 
 /**
- * Endpoint to get all authors from the subscribed_authors_bsky table.
- * @route GET /api/bsky/get-bsky-authors
+ * Endpoint to get all authors from the subscribed_authors table.
+ * @route GET /api/authors/all
  * @returns {object} 200 - An array of author objects.
  * @returns {object} 500 - Error message for server-side failures.
  */
-router.get('/get-bsky-authors', async (req, res) => {
+router.get('/all', async (req, res) => {
   try {
     const authors = await sql`
-      SELECT id, bsky_did, name, author_context, created_at 
-      FROM subscribed_authors_bsky
+      SELECT id, platform_id, name, author_context, created_at, platform
+      FROM subscribed_authors
+    `;
+    
+    res.status(200).json(authors);
+  } catch (error) {
+    console.error("Error fetching Bsky authors:", error);
+    res.status(500).json({ error: "Failed to fetch authors." });
+  }
+});
+
+/**
+ * Endpoint to get all authors from the subscribed_authors table.
+ * @route GET /api/authors/bluesky
+ * @returns {object} 200 - An array of author objects.
+ * @returns {object} 500 - Error message for server-side failures.
+ */
+router.get('/bluesky', async (req, res) => {
+  try {
+    const authors = await sql`
+      SELECT id, platform_id, name, author_context, created_at, platform
+      FROM subscribed_authors
+      WHERE platform = 'bluesky'
     `;
     
     res.status(200).json(authors);
@@ -118,8 +139,8 @@ router.get('/:id', async (req, res) => {
     }
 
     const [author] = await sql`
-      SELECT id, bsky_did, name, author_context, created_at 
-      FROM subscribed_authors_bsky
+      SELECT id, platform_id, name, author_context, created_at 
+      FROM subscribed_authors
       WHERE id = ${id}
     `;
 

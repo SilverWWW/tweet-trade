@@ -34,7 +34,7 @@ router.post('/trigger-workflow', async (req, res) => {
     }
 
     const [referencedAuthor] = await sql`
-    SELECT id, name, author_context FROM subscribed_authors_bsky
+    SELECT id, name, author_context FROM subscribed_authors
     WHERE id = ${tweet_author_id}
     `;
 
