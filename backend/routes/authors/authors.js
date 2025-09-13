@@ -95,4 +95,52 @@ router.get('/get-bsky-authors', async (req, res) => {
   }
 });
 
+/**
+ * Endpoint to get a specific author by their ID.
+ * @route GET /api/authors/:id
+ * @param {string} id - The author's UUID (required)
+ * @returns {object} 200 - Author object with details.
+ * @returns {object} 400 - Error message for invalid ID format.
+ * @returns {object} 404 - Error message if author not found.
+ * @returns {object} 500 - Error message for server-side failures.
+ */
+router.get('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Validate UUID format
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(id)) {
+      return res.status(400).json({
+        error: 'Invalid author ID format',
+        message: 'Author ID must be a valid UUID'
+      });
+    }
+
+    const [author] = await sql`
+      SELECT id, bsky_did, name, author_context, created_at 
+      FROM subscribed_authors_bsky
+      WHERE id = ${id}
+    `;
+
+    if (!author) {
+      return res.status(404).json({
+        error: 'Author not found',
+        message: `No author found with ID: ${id}`
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: author
+    });
+  } catch (error) {
+    console.error("Error fetching author by ID:", error);
+    res.status(500).json({ 
+      error: "Failed to fetch author.",
+      message: "Internal server error"
+    });
+  }
+});
+
 module.exports = router;
