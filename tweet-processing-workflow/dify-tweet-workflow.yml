@@ -1,0 +1,2660 @@
+app:
+  description: ''
+  icon: 🐤
+  icon_background: '#D1E9FF'
+  mode: workflow
+  name: Tweet Trade
+  use_icon_as_answer_icon: false
+dependencies:
+- current_identifier: null
+  type: marketplace
+  value:
+    marketplace_plugin_unique_identifier: langgenius/openai:0.2.5@373362a028986aae53a7baf73a7f11991ba3c22c69eaf97d6cde048cfd4a9f98
+- current_identifier: null
+  type: marketplace
+  value:
+    marketplace_plugin_unique_identifier: gaurav0651/webhook_sender:1.0.0@6048e051b34d727cd9a3cfafef1bb72334a216c77aa717f183e8434d7943cdd9
+kind: app
+version: 0.4.0
+workflow:
+  conversation_variables: []
+  environment_variables: []
+  features:
+    file_upload:
+      allowed_file_extensions:
+      - .JPG
+      - .JPEG
+      - .PNG
+      - .GIF
+      - .WEBP
+      - .SVG
+      allowed_file_types:
+      - image
+      allowed_file_upload_methods:
+      - local_file
+      - remote_url
+      enabled: false
+      fileUploadConfig:
+        audio_file_size_limit: 50
+        batch_count_limit: 5
+        file_size_limit: 15
+        image_file_size_limit: 10
+        video_file_size_limit: 100
+        workflow_file_upload_limit: 10
+      image:
+        enabled: false
+        number_limits: 3
+        transfer_methods:
+        - local_file
+        - remote_url
+      number_limits: 3
+    opening_statement: ''
+    retriever_resource:
+      enabled: true
+    sensitive_word_avoidance:
+      enabled: false
+    speech_to_text:
+      enabled: false
+    suggested_questions: []
+    suggested_questions_after_answer:
+      enabled: false
+    text_to_speech:
+      enabled: false
+      language: ''
+      voice: ''
+  graph:
+    edges:
+    - data:
+        isInLoop: false
+        sourceType: code
+        targetType: if-else
+      id: 1756344179858-source-1756344064252-target
+      selected: false
+      source: '1756344179858'
+      sourceHandle: source
+      target: '1756344064252'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: if-else
+        targetType: agent
+      id: 1756344064252-true-1756335520308-target
+      selected: false
+      source: '1756344064252'
+      sourceHandle: 'true'
+      target: '1756335520308'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: agent
+        targetType: code
+      id: 1756335520308-source-17563652834850-target
+      selected: false
+      source: '1756335520308'
+      sourceHandle: source
+      target: '17563652834850'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: code
+        targetType: if-else
+      id: 17563652834850-source-1756401112287-target
+      selected: false
+      source: '17563652834850'
+      sourceHandle: source
+      target: '1756401112287'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: llm
+        targetType: code
+      id: 1756404819838-source-1756344179858-target
+      selected: false
+      source: '1756404819838'
+      sourceHandle: source
+      target: '1756344179858'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: llm
+        targetType: code
+      id: 1756404819838-fail-branch-1756405480697-target
+      selected: false
+      source: '1756404819838'
+      sourceHandle: fail-branch
+      target: '1756405480697'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: code
+        targetType: code
+      id: 1756344179858-fail-branch-1756405634407-target
+      selected: false
+      source: '1756344179858'
+      sourceHandle: fail-branch
+      target: '1756405634407'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: if-else
+        targetType: code
+      id: 1756344064252-false-1756405759241-target
+      selected: false
+      source: '1756344064252'
+      sourceHandle: 'false'
+      target: '1756405759241'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: code
+        targetType: code
+      id: 17563652834850-fail-branch-17564060158650-target
+      selected: false
+      source: '17563652834850'
+      sourceHandle: fail-branch
+      target: '17564060158650'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: if-else
+        targetType: code
+      id: 1756401112287-false-17564060716760-target
+      selected: false
+      source: '1756401112287'
+      sourceHandle: 'false'
+      target: '17564060716760'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: if-else
+        targetType: code
+      id: 1756401112287-true-1756406246450-target
+      selected: false
+      source: '1756401112287'
+      sourceHandle: 'true'
+      target: '1756406246450'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: start
+        targetType: llm
+      id: 1756334493587-source-1756404819838-target
+      selected: false
+      source: '1756334493587'
+      sourceHandle: source
+      target: '1756404819838'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: code
+        targetType: tool
+      id: 1756405480697-source-1756679941959-target
+      selected: false
+      source: '1756405480697'
+      sourceHandle: source
+      target: '1756679941959'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: tool
+        targetType: end
+      id: 1756679941959-source-1756405166588-target
+      selected: false
+      source: '1756679941959'
+      sourceHandle: source
+      target: '1756405166588'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: code
+        targetType: tool
+      id: 1756405634407-source-17566801703690-target
+      selected: false
+      source: '1756405634407'
+      sourceHandle: source
+      target: '17566801703690'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: tool
+        targetType: end
+      id: 17566801703690-source-17563611193420-target
+      selected: false
+      source: '17566801703690'
+      sourceHandle: source
+      target: '17563611193420'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: code
+        targetType: tool
+      id: 1756405759241-source-17566802034010-target
+      selected: false
+      source: '1756405759241'
+      sourceHandle: source
+      target: '17566802034010'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: tool
+        targetType: end
+      id: 17566802034010-source-17563611255860-target
+      selected: false
+      source: '17566802034010'
+      sourceHandle: source
+      target: '17563611255860'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: code
+        targetType: tool
+      id: 17564060158650-source-17566802100060-target
+      selected: false
+      source: '17564060158650'
+      sourceHandle: source
+      target: '17566802100060'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: tool
+        targetType: end
+      id: 17566802100060-source-17563654244120-target
+      selected: false
+      source: '17566802100060'
+      sourceHandle: source
+      target: '17563654244120'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: code
+        targetType: tool
+      id: 17564060716760-source-17566802095340-target
+      selected: false
+      source: '17564060716760'
+      sourceHandle: source
+      target: '17566802095340'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: tool
+        targetType: end
+      id: 17566802095340-source-17564061607880-target
+      selected: false
+      source: '17566802095340'
+      sourceHandle: source
+      target: '17564061607880'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: code
+        targetType: tool
+      id: 1756406246450-source-17566802030110-target
+      selected: false
+      source: '1756406246450'
+      sourceHandle: source
+      target: '17566802030110'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: tool
+        targetType: end
+      id: 17566802030110-source-1756365473782-target
+      selected: false
+      source: '17566802030110'
+      sourceHandle: source
+      target: '1756365473782'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    nodes:
+    - data:
+        desc: ''
+        selected: false
+        title: Start
+        type: start
+        variables:
+        - label: Tweet Author
+          max_length: 48
+          options: []
+          required: true
+          type: text-input
+          variable: author
+        - label: Tweet Content
+          max_length: 4096
+          options: []
+          required: true
+          type: paragraph
+          variable: tweet_content
+        - label: Author Context
+          max_length: 4096
+          options: []
+          required: true
+          type: paragraph
+          variable: author_context
+        - label: Tweet Process ID
+          max_length: 256
+          options: []
+          required: true
+          type: text-input
+          variable: tweet_process_id
+        - label: Completion URL
+          max_length: 96
+          options: []
+          required: true
+          type: text-input
+          variable: completion_url
+      height: 194
+      id: '1756334493587'
+      position:
+        x: -1035.66910114024
+        y: -224.957604914007
+      positionAbsolute:
+        x: -1035.66910114024
+        y: -224.957604914007
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        agent_parameters:
+          instruction:
+            type: constant
+            value: "You are an expert financial analyst agent. Your goal is to analyze\
+              \ the market implications of a social media post, using the tools at\
+              \ your disposal to gather information. You must come up with a nonempty\
+              \ list of stocks to purchase as a result of the post.\n\nAfter completing\
+              \ your analysis, your final step is to call the submit_trades tool.\
+              \ The argument for this tool MUST be a single, valid JSON object that\
+              \ strictly adheres to the schema provided.\n\nThe JSON object you provide\
+              \ must contain a single key, \"trades\". The value of this key must\
+              \ be an array of trade objects.\n\nEach trade object in the array must\
+              \ contain:\n- stock_ticker: The stock's ticker symbol.\n- timeline:\
+              \ The number of days to hold the stock for in order to realize intended\
+              \ profits.\n- reasoning: A brief, evidence-backed explanation for the\
+              \ trade.\n- confidence: A number between 0.0 and 1.0.\n\nExample of\
+              \ the CORRECT final output:\nYour final action should be a call to the\
+              \ submit_trades tool with an argument formatted exactly like this:\n\
+              \n{\n  \"trades\": [\n    {\n      \"stock_ticker\": \"NVDA\",\n   \
+              \   \"timeline\": 365,\n      \"reasoning\": \"The President's tweet\
+              \ about fewer trade restrictions on NVIDIA's computer chips bodes well\
+              \ their business model. NVIDIA will see an increase in chip exports\
+              \ to China and realize more profits.\",\n      \"confidence\": 0.65\n\
+              \    },\n    {\n      \"stock_ticker\": \"BIDU\",\n      \"timeline\"\
+              : 730,\n      \"reasoning\": \"With more chip imports coming into China\
+              \ from NVIDIA, Baidu will be able to capitalize on the opportunity to\
+              \ bolster their manufacturing capabilities, driving profits.\",\n  \
+              \    \"confidence\": 0.40\n    }\n  ]\n}"
+          maximum_iterations:
+            type: constant
+            value: 10
+          model:
+            type: constant
+            value:
+              completion_params:
+                enable_stream: false
+                frequency_penalty: 0.3
+                json_schema: "{\n  \"name\": \"submit_trades\",\n  \"description\"\
+                  : \"Submit a list of stock trade recommendations.\",\n  \"schema\"\
+                  : {\n    \"type\": \"object\",\n    \"properties\": {\n      \"\
+                  trades\": {\n        \"type\": \"array\",\n        \"description\"\
+                  : \"A list of recommended stock trades, containing between 1 and\
+                  \ 10 items.\",\n        \"items\": {\n          \"type\": \"object\"\
+                  ,\n          \"properties\": {\n            \"stock_ticker\": {\n\
+                  \              \"description\": \"The stock's ticker symbol.\",\n\
+                  \              \"type\": \"string\"\n            },\n          \
+                  \  \"timeline\": {\n              \"description\": \"The number\
+                  \ of days to hold the position.\",\n              \"type\": \"number\"\
+                  \n            },\n            \"reasoning\": {\n              \"\
+                  description\": \"A brief, evidence-backed explanation for the trade.\"\
+                  ,\n              \"type\": \"string\"\n            },\n        \
+                  \    \"confidence\": {\n              \"description\": \"Confidence\
+                  \ in the trade's success, from 0.0 (low) to 1.0 (high).\",\n   \
+                  \           \"type\": \"number\",\n              \"minimum\": 0,\n\
+                  \              \"maximum\": 1\n            }\n          },\n   \
+                  \       \"required\": [\n            \"stock_ticker\",\n       \
+                  \     \"timeline\",\n            \"reasoning\",\n            \"\
+                  confidence\"\n          ]\n        }\n      }\n    },\n    \"required\"\
+                  : [\n      \"trades\"\n    ]\n  }\n}"
+                presence_penalty: 0.2
+                response_format: json_schema
+                temperature: 0.5
+                top_p: 0.85
+              mode: chat
+              model: gpt-5-mini
+              model_type: llm
+              provider: langgenius/openai/openai
+              type: model-selector
+          query:
+            type: constant
+            value: 'Analyze the following Twitter post in depth and determine an optimal
+              set of trades to make in turn:
+
+
+              Author: {{#1756334493587.author#}}
+
+              Author background: {{#1756334493587.author_context#}}
+
+              Post content: {{#1756334493587.tweet_content#}}
+
+              Potentially affected stocks: {{#1756344179858.affected_stocks#}}
+
+              Potentially affected industries: {{#1756344179858.affected_industries#}}'
+          tools:
+            type: constant
+            value:
+            - enabled: true
+              extra:
+                description: A tool for search ticker information from Yahoo Finance.
+              parameters:
+                symbol:
+                  auto: 1
+                  value: null
+              provider_name: langgenius/yahoo/yahoo
+              provider_show_name: langgenius/yahoo/yahoo
+              schemas:
+              - auto_generate: null
+                default: null
+                form: llm
+                human_description:
+                  en_US: The ticker symbol of the company you want to search.
+                  ja_JP: The ticker symbol of the company you want to search.
+                  pt_BR: O símbolo do ticker da empresa que você deseja pesquisar.
+                  zh_Hans: 你想要搜索的公司的股票代码。
+                label:
+                  en_US: Ticker symbol
+                  ja_JP: Ticker symbol
+                  pt_BR: Símbolo do ticker
+                  zh_Hans: 股票代码
+                llm_description: The ticker symbol of the company you want to search.
+                max: null
+                min: null
+                name: symbol
+                options: []
+                placeholder: null
+                precision: null
+                required: true
+                scope: null
+                template: null
+                type: string
+              settings: {}
+              tool_description: A tool for search ticker information from Yahoo Finance.
+              tool_label: Ticker
+              tool_name: yahoo_finance_ticker
+              type: builtin
+            - enabled: true
+              extra:
+                description: A tool for get news about a ticker from Yahoo Finance.
+              parameters:
+                symbol:
+                  auto: 1
+                  value: null
+              provider_name: langgenius/yahoo/yahoo
+              provider_show_name: langgenius/yahoo/yahoo
+              schemas:
+              - auto_generate: null
+                default: null
+                form: llm
+                human_description:
+                  en_US: The ticker symbol of the company you want to search.
+                  ja_JP: The ticker symbol of the company you want to search.
+                  pt_BR: O símbolo do ticker da empresa que você deseja pesquisar.
+                  zh_Hans: 你想要搜索的公司的股票代码。
+                label:
+                  en_US: Ticker symbol
+                  ja_JP: Ticker symbol
+                  pt_BR: Símbolo do ticker
+                  zh_Hans: 股票代码
+                llm_description: The ticker symbol of the company you want to search.
+                max: null
+                min: null
+                name: symbol
+                options: []
+                placeholder: null
+                precision: null
+                required: true
+                scope: null
+                template: null
+                type: string
+              settings: {}
+              tool_description: A tool for get news about a ticker from Yahoo Finance.
+              tool_label: News
+              tool_name: yahoo_finance_news
+              type: builtin
+            - enabled: false
+              extra:
+                description: A tool for performing a Google SERP search and extracting
+                  snippets and webpages.Input should be a search query.
+              parameters:
+                gl:
+                  auto: 1
+                  value: null
+                hl:
+                  auto: 1
+                  value: null
+                location:
+                  auto: 1
+                  value: null
+                query:
+                  auto: 1
+                  value: null
+              provider_name: langgenius/google/google
+              provider_show_name: langgenius/google/google
+              schemas:
+              - auto_generate: null
+                default: null
+                form: llm
+                human_description:
+                  en_US: used for searching
+                  ja_JP: used for searching
+                  pt_BR: used for searching
+                  zh_Hans: 用于搜索网页内容
+                label:
+                  en_US: Query string
+                  ja_JP: Query string
+                  pt_BR: Query string
+                  zh_Hans: 查询语句
+                llm_description: key words for searching
+                max: null
+                min: null
+                name: query
+                options: []
+                placeholder: null
+                precision: null
+                required: true
+                scope: null
+                template: null
+                type: string
+              - auto_generate: null
+                default: null
+                form: llm
+                human_description:
+                  en_US: Parameter defines the language to use for the Google search.
+                    It's a two-letter language code. (e.g., en for English, es for
+                    Spanish, or fr for French). Head to https://serpapi.com/google-languages
+                    for a full list of supported Google languages.
+                  ja_JP: Parameter defines the language to use for the Google search.
+                    It's a two-letter language code. (e.g., en for English, es for
+                    Spanish, or fr for French). Head to https://serpapi.com/google-languages
+                    for a full list of supported Google languages.
+                  pt_BR: Parameter defines the language to use for the Google search.
+                    It's a two-letter language code. (e.g., en for English, es for
+                    Spanish, or fr for French). Head to https://serpapi.com/google-languages
+                    for a full list of supported Google languages.
+                  zh_Hans: 此参数定义用于 Google 搜索的语言。它是一个两字母的语言代码。 (例如，en 代表英语，es 代表西班牙语，fr
+                    代表法语)。请前往 https://serpapi.com/google-languages 查看完整的支持 Google
+                    语言列表。
+                label:
+                  en_US: Language
+                  ja_JP: Language
+                  pt_BR: Language
+                  zh_Hans: 语言
+                llm_description: Language
+                max: null
+                min: null
+                name: hl
+                options: []
+                placeholder: null
+                precision: null
+                required: false
+                scope: null
+                template: null
+                type: string
+              - auto_generate: null
+                default: null
+                form: llm
+                human_description:
+                  en_US: Parameter defines the country to use for the Google search.
+                    It's a two-letter country code. (e.g., us for the United States,
+                    uk for United Kingdom, or fr for France). Head to the https://serpapi.com/google-countries
+                    for a full list of supported Google countries.
+                  ja_JP: Parameter defines the country to use for the Google search.
+                    It's a two-letter country code. (e.g., us for the United States,
+                    uk for United Kingdom, or fr for France). Head to the https://serpapi.com/google-countries
+                    for a full list of supported Google countries.
+                  pt_BR: Parameter defines the country to use for the Google search.
+                    It's a two-letter country code. (e.g., us for the United States,
+                    uk for United Kingdom, or fr for France). Head to the https://serpapi.com/google-countries
+                    for a full list of supported Google countries.
+                  zh_Hans: 此参数定义用于 Google 搜索的国家。它是一个两字母的国家代码。 (例如，us 代表美国，uk 代表英国，fr
+                    代表法国)。请前往 https://serpapi.com/google-countries 查看完整的支持 Google
+                    国家列表。
+                label:
+                  en_US: Country
+                  ja_JP: Country
+                  pt_BR: Country
+                  zh_Hans: 国家
+                llm_description: Country
+                max: null
+                min: null
+                name: gl
+                options: []
+                placeholder: null
+                precision: null
+                required: false
+                scope: null
+                template: null
+                type: string
+              - auto_generate: null
+                default: null
+                form: llm
+                human_description:
+                  en_US: Parameter defines from where you want the search to originate.
+                    If several locations match the location requested, we'll pick
+                    the most popular one. Head to the /locations.json API if you need
+                    more precise control. The location and uule parameters can't be
+                    used together. It is recommended to specify location at the city
+                    level in order to simulate a real user’s search. If location is
+                    omitted, the search may take on the location of the proxy.
+                  ja_JP: Parameter defines from where you want the search to originate.
+                    If several locations match the location requested, we'll pick
+                    the most popular one. Head to the /locations.json API if you need
+                    more precise control. The location and uule parameters can't be
+                    used together. It is recommended to specify location at the city
+                    level in order to simulate a real user’s search. If location is
+                    omitted, the search may take on the location of the proxy.
+                  pt_BR: Parameter defines from where you want the search to originate.
+                    If several locations match the location requested, we'll pick
+                    the most popular one. Head to the /locations.json API if you need
+                    more precise control. The location and uule parameters can't be
+                    used together. It is recommended to specify location at the city
+                    level in order to simulate a real user’s search. If location is
+                    omitted, the search may take on the location of the proxy.
+                  zh_Hans: 此参数定义搜索的位置。如果有多个位置与请求的位置匹配，我们将选择最受欢迎的一个。如果需要更精确的控制，请前往
+                    /locations.json API。location 和 uule 参数不能同时使用。建议在城市级别指定位置，以模拟真实用户的搜索。如果省略位置，则搜索可能会采用代理的位置。
+                label:
+                  en_US: Location
+                  ja_JP: Location
+                  pt_BR: Location
+                  zh_Hans: 位置
+                llm_description: Location
+                max: null
+                min: null
+                name: location
+                options: []
+                placeholder: null
+                precision: null
+                required: false
+                scope: null
+                template: null
+                type: string
+              settings: {}
+              tool_description: A tool for performing a Google SERP search and extracting
+                snippets and webpages.Input should be a search query.
+              tool_label: GoogleSearch
+              tool_name: google_search
+              type: builtin
+        agent_strategy_label: ReAct
+        agent_strategy_name: ReAct
+        agent_strategy_provider_name: langgenius/agent/agent
+        desc: ''
+        meta:
+          minimum_dify_version: 1.7.0
+          version: 0.0.2
+        output_schema: null
+        plugin_unique_identifier: langgenius/agent:0.0.24@0274c08e62efaa28f6327e7bdba655e16559ec28d4f41f2fa3ef553e6327c0f6
+        selected: false
+        title: make trades
+        tool_node_version: '2'
+        type: agent
+      height: 198
+      id: '1756335520308'
+      position:
+        x: 492.18813984006124
+        y: -357.63807944294877
+      positionAbsolute:
+        x: 492.18813984006124
+        y: -357.63807944294877
+      selected: true
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        cases:
+        - case_id: 'true'
+          conditions:
+          - comparison_operator: is
+            id: 2acfbab9-de09-4c09-b3f7-3c2ee8bbd3eb
+            value: 'yes'
+            varType: string
+            variable_selector:
+            - '1756344179858'
+            - could_affect_stock_market
+          id: 'true'
+          logical_operator: and
+        desc: ''
+        selected: false
+        title: IF/ELSE
+        type: if-else
+      height: 126
+      id: '1756344064252'
+      position:
+        x: 145.58975218412593
+        y: -254.39533584265988
+      positionAbsolute:
+        x: 145.58975218412593
+        y: -254.39533584265988
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        code: "import json\n\ndef main(json_data: str) -> dict:\n    \"\"\"\n    Parses\
+          \ a JSON object to check if it could affect the stock market.\n\n    Args:\n\
+          \        json_data (str or dict): The JSON string or dictionary to parse.\n\
+          \n    Returns:\n        dict: A dictionary containing the parsed data based\
+          \ on the specified logic.\n              Returns all keys regardless of\
+          \ the input, with empty values\n              if 'could_affect_stock_market'\
+          \ is not 'yes'.\n    \"\"\"\n    try:\n        if isinstance(json_data,\
+          \ str):\n            data = json.loads(json_data)\n        else:\n     \
+          \       data = json_data\n\n        if data.get(\"could_affect_stock_market\"\
+          ) == \"yes\":\n            return {\n                \"could_affect_stock_market\"\
+          : \"yes\",\n                \"affected_stocks\": data.get(\"affected_stocks\"\
+          , []),\n                \"affected_industries\": data.get(\"affected_industries\"\
+          , []),\n                \"probability\": data.get(\"probability\", None)\n\
+          \            }\n        else:\n            return {\n                \"\
+          could_affect_stock_market\": \"no\",\n                \"affected_stocks\"\
+          : [],\n                \"affected_industries\": [],\n                \"\
+          probability\": 0\n            }\n            \n    except (json.JSONDecodeError,\
+          \ AttributeError) as e:\n        print(f\"Error parsing data: {e}\")\n \
+          \       return {\n            \"could_affect_stock_market\": \"no\",\n \
+          \           \"affected_stocks\": [],\n            \"affected_industries\"\
+          : [],\n            \"probability\": \"\"\n        }\n"
+        code_language: python3
+        desc: ''
+        error_strategy: fail-branch
+        outputs:
+          affected_industries:
+            children: null
+            type: array[string]
+          affected_stocks:
+            children: null
+            type: array[string]
+          could_affect_stock_market:
+            children: null
+            type: string
+          probability:
+            children: null
+            type: number
+        selected: false
+        title: Parse affect market JSON
+        type: code
+        variables:
+        - value_selector:
+          - '1756404819838'
+          - text
+          value_type: string
+          variable: json_data
+      height: 90
+      id: '1756344179858'
+      position:
+        x: -187.0532360467202
+        y: -170.30229435084777
+      positionAbsolute:
+        x: -187.0532360467202
+        y: -170.30229435084777
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        desc: ''
+        outputs:
+        - value_selector:
+          - '1756405634407'
+          - status
+          value_type: string
+          variable: status
+        - value_selector:
+          - '1756344179858'
+          - error_type
+          value_type: string
+          variable: error_type
+        - value_selector:
+          - '1756344179858'
+          - error_message
+          value_type: string
+          variable: error_message
+        - value_selector:
+          - '1756334493587'
+          - tweet_process_id
+          value_type: string
+          variable: tweet_process_id
+        selected: false
+        title: Couldn't parse JSON (market effect)
+        type: end
+      height: 168
+      id: '17563611193420'
+      position:
+        x: 128.5233421441244
+        y: 201.41917793218704
+      positionAbsolute:
+        x: 128.5233421441244
+        y: 201.41917793218704
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        desc: ''
+        outputs:
+        - value_selector:
+          - '1756405759241'
+          - status
+          value_type: string
+          variable: status
+        - value_selector:
+          - '1756405759241'
+          - market_effect
+          value_type: string
+          variable: market_effect
+        - value_selector:
+          - '1756334493587'
+          - tweet_process_id
+          value_type: string
+          variable: tweet_process_id
+        selected: false
+        title: No market effect
+        type: end
+      height: 142
+      id: '17563611255860'
+      position:
+        x: 482.76308373282563
+        y: 171.4433575543502
+      positionAbsolute:
+        x: 482.76308373282563
+        y: 171.4433575543502
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        code: "import json\n\ndef main(json_data: str) -> dict:\n    try:\n      \
+          \  data = json.loads(json_data)\n        if \"trades\" in data and isinstance(data.get(\"\
+          trades\"), list):\n            return {\"trades\": data[\"trades\"]}\n \
+          \       else:\n            return {\"trades\": []}\n    except (json.JSONDecodeError,\
+          \ TypeError):\n        return {\"trades\": []}"
+        code_language: python3
+        desc: ''
+        error_strategy: fail-branch
+        outputs:
+          trades:
+            children: null
+            type: array[object]
+        selected: false
+        title: Parse make trades JSON
+        type: code
+        variables:
+        - value_selector:
+          - '1756335520308'
+          - text
+          value_type: string
+          variable: json_data
+      height: 90
+      id: '17563652834850'
+      position:
+        x: 798.7401358496486
+        y: -357.63807944294877
+      positionAbsolute:
+        x: 798.7401358496486
+        y: -357.63807944294877
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        desc: ''
+        outputs:
+        - value_selector:
+          - '17564060158650'
+          - status
+          value_type: string
+          variable: status
+        - value_selector:
+          - '17563652834850'
+          - error_type
+          value_type: string
+          variable: error_type
+        - value_selector:
+          - '17563652834850'
+          - error_message
+          value_type: string
+          variable: error_message
+        - value_selector:
+          - '1756334493587'
+          - tweet_process_id
+          value_type: string
+          variable: tweet_process_id
+        selected: false
+        title: Couldn't parse JSON (Make trades)
+        type: end
+      height: 168
+      id: '17563654244120'
+      position:
+        x: 1140.6208050569105
+        y: 40.981018290058216
+      positionAbsolute:
+        x: 1140.6208050569105
+        y: 40.981018290058216
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        desc: ''
+        outputs:
+        - value_selector:
+          - '1756406246450'
+          - status
+          value_type: string
+          variable: status
+        - value_selector:
+          - '1756406246450'
+          - market_effect
+          value_type: string
+          variable: market_effect
+        - value_selector:
+          - '17563652834850'
+          - trades
+          value_type: array[object]
+          variable: trades
+        - value_selector:
+          - '1756334493587'
+          - tweet_process_id
+          value_type: string
+          variable: tweet_process_id
+        selected: false
+        title: success
+        type: end
+      height: 168
+      id: '1756365473782'
+      position:
+        x: 1415.3173563120863
+        y: -830.471085002852
+      positionAbsolute:
+        x: 1415.3173563120863
+        y: -830.471085002852
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        cases:
+        - case_id: 'true'
+          conditions:
+          - comparison_operator: not empty
+            id: 58a93ba2-8dae-4f55-9477-73d0338546e2
+            value: ''
+            varType: array[object]
+            variable_selector:
+            - '17563652834850'
+            - trades
+          id: 'true'
+          logical_operator: and
+        desc: ''
+        selected: false
+        title: trades empty check
+        type: if-else
+      height: 126
+      id: '1756401112287'
+      position:
+        x: 1135.6022769956821
+        y: -443.7766201851611
+      positionAbsolute:
+        x: 1135.6022769956821
+        y: -443.7766201851611
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        context:
+          enabled: false
+          variable_selector: []
+        desc: ''
+        error_strategy: fail-branch
+        model:
+          completion_params: {}
+          mode: chat
+          name: gpt-5-nano
+          provider: langgenius/openai/openai
+        prompt_template:
+        - id: e7051073-20d0-4bd7-8acb-d956894b8273
+          role: system
+          text: "Your task is to analyze a provided Twitter post and determine its\
+            \ potential impact on the United States stock market. \n\nStart by reading\
+            \ the tweet, including its author and the context of the author. Next,\
+            \ evaluate the tweet content and determine whether the tweet will likely\
+            \ bear any effect on the United States stock market. \n\nIf you believe\
+            \ the tweet could affect the stock market:\n1. Set the value of \"could_affect_stock_market\"\
+            \ to \"yes\"\n2. Identify and list the stock ticker symbols that might\
+            \ be affected by this tweet under \"affected_stocks\"\n3. List the industries\
+            \ that might be affected by this tweet under \"affected_industries\"\n\
+            4. Estimate and set the \"probability\" to a decimal number from 0.0 to\
+            \ 1.0, representing the likelihood that the tweet affects the stock market.\n\
+            \nOtherwise, if you believe the tweet likely won't affect the stock market:\n\
+            1. Set \"could_affect_stock_market\" to \"no\" \nNo need to proceed with\
+            \ any other steps.\n\nFor instance, consider the tweet:\nAuthor: Elon\
+            \ Musk\nAuthor context: CEO of Tesla Inc.\nTweet content: Considering\
+            \ a major shift in Tesla's strategy. More updates to follow.\n\nIn this\
+            \ case, the correct response would be\n{\n“could_affect_stock_market”\
+            \ : “yes”,\n“affected_stocks” : [“TSLA”]\n“affected_industries” : [“automotive\
+            \ industry”]\n“probability” : 0.8\n}\n\nOn the other hand, consider this\
+            \ tweet:\nAuthor: Mark Cuban\nAuthor context: Successful billionaire businessman\
+            \ and owner of the Dallas Mavericks.\nTweet content: Loving the latest\
+            \ features of my new car.\n\nIn this case, the correct response would\
+            \ be\n{\n“could_affect_stock_market” : “no”\n}"
+        - id: 42d1e0b4-bfa9-4bb8-bd72-862f58cac5e1
+          role: user
+          text: 'Analyze this tweet and indicate its potential impact on the stock
+            market.
+
+
+            Author: {{#1756334493587.author#}}
+
+            Author context: {{#1756334493587.author_context#}}
+
+            Tweet content: {{#1756334493587.tweet_content#}}'
+        selected: false
+        structured_output:
+          schema:
+            additionalProperties: false
+            properties:
+              affected_industries:
+                description: A list of industries that might be affected.
+                items:
+                  type: string
+                type: array
+              affected_stocks:
+                description: A list of stock ticker symbols that might be affected,
+                items:
+                  type: string
+                type: array
+              could_affect_stock_market:
+                description: Whether the tweet could affect the U.S. stock market.
+                enum:
+                - 'yes'
+                - 'no'
+                type: string
+              probability:
+                description: The probability (0-1) that the tweet affects the U.S.
+                  stock market.
+                type: number
+            required:
+            - could_affect_stock_market
+            type: object
+        structured_output_enabled: true
+        title: market effect
+        type: llm
+        variables: []
+        vision:
+          enabled: false
+      height: 126
+      id: '1756404819838'
+      position:
+        x: -635.3470965863157
+        y: -199.10435493519265
+      positionAbsolute:
+        x: -635.3470965863157
+        y: -199.10435493519265
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        desc: ''
+        outputs:
+        - value_selector:
+          - '1756405480697'
+          - status
+          value_type: string
+          variable: status
+        - value_selector:
+          - '1756404819838'
+          - error_type
+          value_type: string
+          variable: error_type
+        - value_selector:
+          - '1756404819838'
+          - error_message
+          value_type: string
+          variable: error_message
+        - value_selector:
+          - '1756334493587'
+          - tweet_process_id
+          value_type: string
+          variable: tweet_process_id
+        selected: false
+        title: market effect error
+        type: end
+      height: 168
+      id: '1756405166588'
+      position:
+        x: -376.4140882979334
+        y: 229.89534166842998
+      positionAbsolute:
+        x: -376.4140882979334
+        y: 229.89534166842998
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        code: "\ndef main() -> dict:\n    return {\n        \"status\": \"error\"\
+          ,\n    }\n"
+        code_language: python3
+        desc: ''
+        outputs:
+          status:
+            children: null
+            type: string
+        selected: false
+        title: error status - market effect
+        type: code
+        variables: []
+      height: 54
+      id: '1756405480697'
+      position:
+        x: -382.43464179501797
+        y: -20.509245295209624
+      positionAbsolute:
+        x: -382.43464179501797
+        y: -20.509245295209624
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        code: "\ndef main() -> dict:\n    return {\n        \"status\": \"error\"\
+          ,\n    }\n"
+        code_language: python3
+        desc: ''
+        outputs:
+          status:
+            children: null
+            type: string
+        selected: false
+        title: error status - market effect parse json
+        type: code
+        variables: []
+      height: 54
+      id: '1756405634407'
+      position:
+        x: 128.5233421441244
+        y: -44.09190172739857
+      positionAbsolute:
+        x: 128.5233421441244
+        y: -44.09190172739857
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        code: "\ndef main() -> dict:\n    return {\n        \"status\": \"ok\",\n\
+          \        \"market_effect\": \"no\"\n    }\n"
+        code_language: python3
+        desc: ''
+        outputs:
+          market_effect:
+            children: null
+            type: string
+          status:
+            children: null
+            type: string
+        selected: false
+        title: ok status - no market effect
+        type: code
+        variables: []
+      height: 54
+      id: '1756405759241'
+      position:
+        x: 482.76308373282563
+        y: -74.2642714564324
+      positionAbsolute:
+        x: 482.76308373282563
+        y: -74.2642714564324
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        code: "\ndef main() -> dict:\n    return {\n        \"status\": \"error\"\
+          ,\n    }\n"
+        code_language: python3
+        desc: ''
+        outputs:
+          status:
+            children: null
+            type: string
+        selected: false
+        title: error status - make trades
+        type: code
+        variables: []
+      height: 54
+      id: '17564060158650'
+      position:
+        x: 1135.6022769956821
+        y: -209.96341216437568
+      positionAbsolute:
+        x: 1135.6022769956821
+        y: -209.96341216437568
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        code: "\ndef main() -> dict:\n    return {\n        \"status\": \"error\"\
+          ,\n        \"error_type\": \"empty_trades\"\n        \"error_message\":\
+          \ \"Outputted trades were empty.\"\n    }\n"
+        code_language: python3
+        desc: ''
+        outputs:
+          error_message:
+            children: null
+            type: string
+          error_type:
+            children: null
+            type: string
+          status:
+            children: null
+            type: string
+        selected: false
+        title: error status - empty trades
+        type: code
+        variables: []
+      height: 54
+      id: '17564060716760'
+      position:
+        x: 1435.4670418561154
+        y: -319.2099663568383
+      positionAbsolute:
+        x: 1435.4670418561154
+        y: -319.2099663568383
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        desc: ''
+        outputs:
+        - value_selector:
+          - '17564060716760'
+          - status
+          value_type: string
+          variable: status
+        - value_selector:
+          - '17564060716760'
+          - error_type
+          value_type: string
+          variable: error_type
+        - value_selector:
+          - '17564060716760'
+          - error_message
+          value_type: string
+          variable: error_message
+        - value_selector:
+          - '1756334493587'
+          - tweet_process_id
+          value_type: string
+          variable: tweet_process_id
+        selected: false
+        title: Trades were empty
+        type: end
+      height: 168
+      id: '17564061607880'
+      position:
+        x: 1442.0523608504877
+        y: -44.09190172739857
+      positionAbsolute:
+        x: 1442.0523608504877
+        y: -44.09190172739857
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        code: "\ndef main(trades) -> dict:\n    trades_as_string = json.dumps(trades)\n\
+          \    return {\n        \"status\": \"ok\",\n        \"market_effect\": \"\
+          yes\",\n        \"trades_as_string\": trades_as_string\n    }\n"
+        code_language: python3
+        desc: ''
+        outputs:
+          market_effect:
+            children: null
+            type: string
+          status:
+            children: null
+            type: string
+          trades_as_string:
+            children: null
+            type: string
+        selected: false
+        title: ok status - trades
+        type: code
+        variables:
+        - value_selector:
+          - '17563652834850'
+          - trades
+          value_type: array[object]
+          variable: trades
+      height: 54
+      id: '1756406246450'
+      position:
+        x: 1415.3173563120863
+        y: -436.314259218054
+      positionAbsolute:
+        x: 1415.3173563120863
+        y: -436.314259218054
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        desc: ''
+        is_team_authorization: true
+        output_schema: null
+        paramSchemas:
+        - auto_generate: null
+          default: null
+          form: llm
+          human_description:
+            en_US: The text content to send to the webhook
+            ja_JP: The text content to send to the webhook
+            pt_BR: O conteúdo de texto para enviar ao webhook
+            zh_Hans: 要发送到webhook的文本内容
+          label:
+            en_US: Text Input
+            ja_JP: Text Input
+            pt_BR: Entrada de Texto
+            zh_Hans: 文本输入
+          llm_description: The text content that will be sent to the webhook endpoint
+          max: null
+          min: null
+          name: text_input
+          options: []
+          placeholder: null
+          precision: null
+          required: true
+          scope: null
+          template: null
+          type: string
+        - auto_generate: null
+          default: null
+          form: form
+          human_description:
+            en_US: The webhook endpoint URL to send the data to
+            ja_JP: The webhook endpoint URL to send the data to
+            pt_BR: A URL do endpoint do webhook para enviar os dados
+            zh_Hans: 要发送数据的webhook端点URL
+          label:
+            en_US: Webhook URL
+            ja_JP: Webhook URL
+            pt_BR: URL do Webhook
+            zh_Hans: Webhook URL
+          llm_description: The full webhook URL endpoint where the text will be sent
+          max: null
+          min: null
+          name: webhook_url
+          options: []
+          placeholder: null
+          precision: null
+          required: true
+          scope: null
+          template: null
+          type: string
+        - auto_generate: null
+          default: POST
+          form: form
+          human_description:
+            en_US: The HTTP method to use for the webhook request
+            ja_JP: The HTTP method to use for the webhook request
+            pt_BR: O método HTTP a usar para a solicitação do webhook
+            zh_Hans: 用于webhook请求的HTTP方法
+          label:
+            en_US: HTTP Method
+            ja_JP: HTTP Method
+            pt_BR: Método HTTP
+            zh_Hans: HTTP 方法
+          llm_description: The HTTP method to use when calling the webhook
+          max: null
+          min: null
+          name: method
+          options:
+          - icon: ''
+            label:
+              en_US: POST
+              ja_JP: POST
+              pt_BR: POST
+              zh_Hans: POST
+            value: POST
+          - icon: ''
+            label:
+              en_US: PUT
+              ja_JP: PUT
+              pt_BR: PUT
+              zh_Hans: PUT
+            value: PUT
+          - icon: ''
+            label:
+              en_US: PATCH
+              ja_JP: PATCH
+              pt_BR: PATCH
+              zh_Hans: PATCH
+            value: PATCH
+          placeholder: null
+          precision: null
+          required: false
+          scope: null
+          template: null
+          type: select
+        - auto_generate: null
+          default: '{}'
+          form: form
+          human_description:
+            en_US: 'Optional custom headers in JSON format (e.g., {"Authorization":
+              "Bearer token"})'
+            ja_JP: 'Optional custom headers in JSON format (e.g., {"Authorization":
+              "Bearer token"})'
+            pt_BR: 'Cabeçalhos personalizados opcionais em formato JSON (ex: {"Authorization":
+              "Bearer token"})'
+            zh_Hans: '可选的JSON格式自定义头部 (例如: {"Authorization": "Bearer token"})'
+          label:
+            en_US: Custom Headers (JSON)
+            ja_JP: Custom Headers (JSON)
+            pt_BR: Cabeçalhos Personalizados (JSON)
+            zh_Hans: 自定义头部 (JSON)
+          llm_description: Optional custom headers to include in the webhook request,
+            provided as a JSON string
+          max: null
+          min: null
+          name: headers
+          options: []
+          placeholder: null
+          precision: null
+          required: false
+          scope: null
+          template: null
+          type: string
+        - auto_generate: null
+          default: 30
+          form: form
+          human_description:
+            en_US: Request timeout in seconds
+            ja_JP: Request timeout in seconds
+            pt_BR: Tempo limite da solicitação em segundos
+            zh_Hans: 请求超时（秒）
+          label:
+            en_US: Timeout (seconds)
+            ja_JP: Timeout (seconds)
+            pt_BR: Tempo Limite (segundos)
+            zh_Hans: 超时 (秒)
+          llm_description: The maximum time in seconds to wait for the webhook response
+          max: null
+          min: null
+          name: timeout
+          options: []
+          placeholder: null
+          precision: null
+          required: false
+          scope: null
+          template: null
+          type: number
+        params:
+          headers: ''
+          method: ''
+          text_input: ''
+          timeout: ''
+          webhook_url: ''
+        provider_id: gaurav0651/webhook_sender/webhook_sender
+        provider_name: gaurav0651/webhook_sender/webhook_sender
+        provider_type: builtin
+        selected: false
+        title: Webhook Sender
+        tool_configurations:
+          headers:
+            type: mixed
+            value: '{}'
+          method:
+            type: constant
+            value: POST
+          timeout:
+            type: constant
+            value: 30
+          webhook_url:
+            type: mixed
+            value: '{{#1756334493587.completion_url#}}'
+        tool_description: Send text input to a configured webhook URL as JSON payload
+        tool_label: Webhook Sender
+        tool_name: webhook_sender
+        tool_node_version: '2'
+        tool_parameters:
+          text_input:
+            type: mixed
+            value: '{
+
+              "tweet_process_id": "{{#1756334493587.tweet_process_id#}}",
+
+              "status": "{{#1756405480697.status#}}",
+
+              "error_type": "{{#1756404819838.error_type#}}",
+
+              "error_message": "{{#1756404819838.error_message#}}"
+
+              }'
+        type: tool
+      height: 168
+      id: '1756679941959'
+      position:
+        x: -376.4140882979334
+        y: 47.981065453255695
+      positionAbsolute:
+        x: -376.4140882979334
+        y: 47.981065453255695
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        desc: ''
+        is_team_authorization: true
+        output_schema: null
+        paramSchemas:
+        - auto_generate: null
+          default: null
+          form: llm
+          human_description:
+            en_US: The text content to send to the webhook
+            ja_JP: The text content to send to the webhook
+            pt_BR: O conteúdo de texto para enviar ao webhook
+            zh_Hans: 要发送到webhook的文本内容
+          label:
+            en_US: Text Input
+            ja_JP: Text Input
+            pt_BR: Entrada de Texto
+            zh_Hans: 文本输入
+          llm_description: The text content that will be sent to the webhook endpoint
+          max: null
+          min: null
+          name: text_input
+          options: []
+          placeholder: null
+          precision: null
+          required: true
+          scope: null
+          template: null
+          type: string
+        - auto_generate: null
+          default: null
+          form: form
+          human_description:
+            en_US: The webhook endpoint URL to send the data to
+            ja_JP: The webhook endpoint URL to send the data to
+            pt_BR: A URL do endpoint do webhook para enviar os dados
+            zh_Hans: 要发送数据的webhook端点URL
+          label:
+            en_US: Webhook URL
+            ja_JP: Webhook URL
+            pt_BR: URL do Webhook
+            zh_Hans: Webhook URL
+          llm_description: The full webhook URL endpoint where the text will be sent
+          max: null
+          min: null
+          name: webhook_url
+          options: []
+          placeholder: null
+          precision: null
+          required: true
+          scope: null
+          template: null
+          type: string
+        - auto_generate: null
+          default: POST
+          form: form
+          human_description:
+            en_US: The HTTP method to use for the webhook request
+            ja_JP: The HTTP method to use for the webhook request
+            pt_BR: O método HTTP a usar para a solicitação do webhook
+            zh_Hans: 用于webhook请求的HTTP方法
+          label:
+            en_US: HTTP Method
+            ja_JP: HTTP Method
+            pt_BR: Método HTTP
+            zh_Hans: HTTP 方法
+          llm_description: The HTTP method to use when calling the webhook
+          max: null
+          min: null
+          name: method
+          options:
+          - icon: ''
+            label:
+              en_US: POST
+              ja_JP: POST
+              pt_BR: POST
+              zh_Hans: POST
+            value: POST
+          - icon: ''
+            label:
+              en_US: PUT
+              ja_JP: PUT
+              pt_BR: PUT
+              zh_Hans: PUT
+            value: PUT
+          - icon: ''
+            label:
+              en_US: PATCH
+              ja_JP: PATCH
+              pt_BR: PATCH
+              zh_Hans: PATCH
+            value: PATCH
+          placeholder: null
+          precision: null
+          required: false
+          scope: null
+          template: null
+          type: select
+        - auto_generate: null
+          default: '{}'
+          form: form
+          human_description:
+            en_US: 'Optional custom headers in JSON format (e.g., {"Authorization":
+              "Bearer token"})'
+            ja_JP: 'Optional custom headers in JSON format (e.g., {"Authorization":
+              "Bearer token"})'
+            pt_BR: 'Cabeçalhos personalizados opcionais em formato JSON (ex: {"Authorization":
+              "Bearer token"})'
+            zh_Hans: '可选的JSON格式自定义头部 (例如: {"Authorization": "Bearer token"})'
+          label:
+            en_US: Custom Headers (JSON)
+            ja_JP: Custom Headers (JSON)
+            pt_BR: Cabeçalhos Personalizados (JSON)
+            zh_Hans: 自定义头部 (JSON)
+          llm_description: Optional custom headers to include in the webhook request,
+            provided as a JSON string
+          max: null
+          min: null
+          name: headers
+          options: []
+          placeholder: null
+          precision: null
+          required: false
+          scope: null
+          template: null
+          type: string
+        - auto_generate: null
+          default: 30
+          form: form
+          human_description:
+            en_US: Request timeout in seconds
+            ja_JP: Request timeout in seconds
+            pt_BR: Tempo limite da solicitação em segundos
+            zh_Hans: 请求超时（秒）
+          label:
+            en_US: Timeout (seconds)
+            ja_JP: Timeout (seconds)
+            pt_BR: Tempo Limite (segundos)
+            zh_Hans: 超时 (秒)
+          llm_description: The maximum time in seconds to wait for the webhook response
+          max: null
+          min: null
+          name: timeout
+          options: []
+          placeholder: null
+          precision: null
+          required: false
+          scope: null
+          template: null
+          type: number
+        params:
+          headers: ''
+          method: ''
+          text_input: ''
+          timeout: ''
+          webhook_url: ''
+        provider_id: gaurav0651/webhook_sender/webhook_sender
+        provider_name: gaurav0651/webhook_sender/webhook_sender
+        provider_type: builtin
+        selected: false
+        title: Webhook Sender (1)
+        tool_configurations:
+          headers:
+            type: mixed
+            value: '{}'
+          method:
+            type: constant
+            value: POST
+          timeout:
+            type: constant
+            value: 30
+          webhook_url:
+            type: mixed
+            value: '{{#1756334493587.completion_url#}}'
+        tool_description: Send text input to a configured webhook URL as JSON payload
+        tool_label: Webhook Sender
+        tool_name: webhook_sender
+        tool_node_version: '2'
+        tool_parameters:
+          text_input:
+            type: mixed
+            value: '{
+
+              "tweet_process_id": "{{#1756334493587.tweet_process_id#}}",
+
+              "status": "{{#1756405634407.status#}}",
+
+              "error_type": "{{#1756404819838.error_type#}}",
+
+              "error_message": "{{#1756344179858.error_message#}}"
+
+              }'
+        type: tool
+      height: 168
+      id: '17566801703690'
+      position:
+        x: 128.5233421441244
+        y: 19.422821700150593
+      positionAbsolute:
+        x: 128.5233421441244
+        y: 19.422821700150593
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        desc: ''
+        is_team_authorization: true
+        output_schema: null
+        paramSchemas:
+        - auto_generate: null
+          default: null
+          form: llm
+          human_description:
+            en_US: The text content to send to the webhook
+            ja_JP: The text content to send to the webhook
+            pt_BR: O conteúdo de texto para enviar ao webhook
+            zh_Hans: 要发送到webhook的文本内容
+          label:
+            en_US: Text Input
+            ja_JP: Text Input
+            pt_BR: Entrada de Texto
+            zh_Hans: 文本输入
+          llm_description: The text content that will be sent to the webhook endpoint
+          max: null
+          min: null
+          name: text_input
+          options: []
+          placeholder: null
+          precision: null
+          required: true
+          scope: null
+          template: null
+          type: string
+        - auto_generate: null
+          default: null
+          form: form
+          human_description:
+            en_US: The webhook endpoint URL to send the data to
+            ja_JP: The webhook endpoint URL to send the data to
+            pt_BR: A URL do endpoint do webhook para enviar os dados
+            zh_Hans: 要发送数据的webhook端点URL
+          label:
+            en_US: Webhook URL
+            ja_JP: Webhook URL
+            pt_BR: URL do Webhook
+            zh_Hans: Webhook URL
+          llm_description: The full webhook URL endpoint where the text will be sent
+          max: null
+          min: null
+          name: webhook_url
+          options: []
+          placeholder: null
+          precision: null
+          required: true
+          scope: null
+          template: null
+          type: string
+        - auto_generate: null
+          default: POST
+          form: form
+          human_description:
+            en_US: The HTTP method to use for the webhook request
+            ja_JP: The HTTP method to use for the webhook request
+            pt_BR: O método HTTP a usar para a solicitação do webhook
+            zh_Hans: 用于webhook请求的HTTP方法
+          label:
+            en_US: HTTP Method
+            ja_JP: HTTP Method
+            pt_BR: Método HTTP
+            zh_Hans: HTTP 方法
+          llm_description: The HTTP method to use when calling the webhook
+          max: null
+          min: null
+          name: method
+          options:
+          - icon: ''
+            label:
+              en_US: POST
+              ja_JP: POST
+              pt_BR: POST
+              zh_Hans: POST
+            value: POST
+          - icon: ''
+            label:
+              en_US: PUT
+              ja_JP: PUT
+              pt_BR: PUT
+              zh_Hans: PUT
+            value: PUT
+          - icon: ''
+            label:
+              en_US: PATCH
+              ja_JP: PATCH
+              pt_BR: PATCH
+              zh_Hans: PATCH
+            value: PATCH
+          placeholder: null
+          precision: null
+          required: false
+          scope: null
+          template: null
+          type: select
+        - auto_generate: null
+          default: '{}'
+          form: form
+          human_description:
+            en_US: 'Optional custom headers in JSON format (e.g., {"Authorization":
+              "Bearer token"})'
+            ja_JP: 'Optional custom headers in JSON format (e.g., {"Authorization":
+              "Bearer token"})'
+            pt_BR: 'Cabeçalhos personalizados opcionais em formato JSON (ex: {"Authorization":
+              "Bearer token"})'
+            zh_Hans: '可选的JSON格式自定义头部 (例如: {"Authorization": "Bearer token"})'
+          label:
+            en_US: Custom Headers (JSON)
+            ja_JP: Custom Headers (JSON)
+            pt_BR: Cabeçalhos Personalizados (JSON)
+            zh_Hans: 自定义头部 (JSON)
+          llm_description: Optional custom headers to include in the webhook request,
+            provided as a JSON string
+          max: null
+          min: null
+          name: headers
+          options: []
+          placeholder: null
+          precision: null
+          required: false
+          scope: null
+          template: null
+          type: string
+        - auto_generate: null
+          default: 30
+          form: form
+          human_description:
+            en_US: Request timeout in seconds
+            ja_JP: Request timeout in seconds
+            pt_BR: Tempo limite da solicitação em segundos
+            zh_Hans: 请求超时（秒）
+          label:
+            en_US: Timeout (seconds)
+            ja_JP: Timeout (seconds)
+            pt_BR: Tempo Limite (segundos)
+            zh_Hans: 超时 (秒)
+          llm_description: The maximum time in seconds to wait for the webhook response
+          max: null
+          min: null
+          name: timeout
+          options: []
+          placeholder: null
+          precision: null
+          required: false
+          scope: null
+          template: null
+          type: number
+        params:
+          headers: ''
+          method: ''
+          text_input: ''
+          timeout: ''
+          webhook_url: ''
+        provider_id: gaurav0651/webhook_sender/webhook_sender
+        provider_name: gaurav0651/webhook_sender/webhook_sender
+        provider_type: builtin
+        selected: false
+        title: Webhook Sender (1)
+        tool_configurations:
+          headers:
+            type: mixed
+            value: '{}'
+          method:
+            type: constant
+            value: POST
+          timeout:
+            type: constant
+            value: 30
+          webhook_url:
+            type: mixed
+            value: '{{#1756334493587.completion_url#}}'
+        tool_description: Send text input to a configured webhook URL as JSON payload
+        tool_label: Webhook Sender
+        tool_name: webhook_sender
+        tool_node_version: '2'
+        tool_parameters:
+          text_input:
+            type: mixed
+            value: '{
+
+              "tweet_process_id": "{{#1756334493587.tweet_process_id#}}",
+
+              "status": "{{#1756406246450.status#}}",
+
+              "market_effect": "{{#1756406246450.market_effect#}}",
+
+              "trades": {{#1756406246450.trades_as_string#}}
+
+              }'
+        type: tool
+      height: 168
+      id: '17566802030110'
+      position:
+        x: 1415.3173563120863
+        y: -640.7860607738685
+      positionAbsolute:
+        x: 1415.3173563120863
+        y: -640.7860607738685
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        desc: ''
+        is_team_authorization: true
+        output_schema: null
+        paramSchemas:
+        - auto_generate: null
+          default: null
+          form: llm
+          human_description:
+            en_US: The text content to send to the webhook
+            ja_JP: The text content to send to the webhook
+            pt_BR: O conteúdo de texto para enviar ao webhook
+            zh_Hans: 要发送到webhook的文本内容
+          label:
+            en_US: Text Input
+            ja_JP: Text Input
+            pt_BR: Entrada de Texto
+            zh_Hans: 文本输入
+          llm_description: The text content that will be sent to the webhook endpoint
+          max: null
+          min: null
+          name: text_input
+          options: []
+          placeholder: null
+          precision: null
+          required: true
+          scope: null
+          template: null
+          type: string
+        - auto_generate: null
+          default: null
+          form: form
+          human_description:
+            en_US: The webhook endpoint URL to send the data to
+            ja_JP: The webhook endpoint URL to send the data to
+            pt_BR: A URL do endpoint do webhook para enviar os dados
+            zh_Hans: 要发送数据的webhook端点URL
+          label:
+            en_US: Webhook URL
+            ja_JP: Webhook URL
+            pt_BR: URL do Webhook
+            zh_Hans: Webhook URL
+          llm_description: The full webhook URL endpoint where the text will be sent
+          max: null
+          min: null
+          name: webhook_url
+          options: []
+          placeholder: null
+          precision: null
+          required: true
+          scope: null
+          template: null
+          type: string
+        - auto_generate: null
+          default: POST
+          form: form
+          human_description:
+            en_US: The HTTP method to use for the webhook request
+            ja_JP: The HTTP method to use for the webhook request
+            pt_BR: O método HTTP a usar para a solicitação do webhook
+            zh_Hans: 用于webhook请求的HTTP方法
+          label:
+            en_US: HTTP Method
+            ja_JP: HTTP Method
+            pt_BR: Método HTTP
+            zh_Hans: HTTP 方法
+          llm_description: The HTTP method to use when calling the webhook
+          max: null
+          min: null
+          name: method
+          options:
+          - icon: ''
+            label:
+              en_US: POST
+              ja_JP: POST
+              pt_BR: POST
+              zh_Hans: POST
+            value: POST
+          - icon: ''
+            label:
+              en_US: PUT
+              ja_JP: PUT
+              pt_BR: PUT
+              zh_Hans: PUT
+            value: PUT
+          - icon: ''
+            label:
+              en_US: PATCH
+              ja_JP: PATCH
+              pt_BR: PATCH
+              zh_Hans: PATCH
+            value: PATCH
+          placeholder: null
+          precision: null
+          required: false
+          scope: null
+          template: null
+          type: select
+        - auto_generate: null
+          default: '{}'
+          form: form
+          human_description:
+            en_US: 'Optional custom headers in JSON format (e.g., {"Authorization":
+              "Bearer token"})'
+            ja_JP: 'Optional custom headers in JSON format (e.g., {"Authorization":
+              "Bearer token"})'
+            pt_BR: 'Cabeçalhos personalizados opcionais em formato JSON (ex: {"Authorization":
+              "Bearer token"})'
+            zh_Hans: '可选的JSON格式自定义头部 (例如: {"Authorization": "Bearer token"})'
+          label:
+            en_US: Custom Headers (JSON)
+            ja_JP: Custom Headers (JSON)
+            pt_BR: Cabeçalhos Personalizados (JSON)
+            zh_Hans: 自定义头部 (JSON)
+          llm_description: Optional custom headers to include in the webhook request,
+            provided as a JSON string
+          max: null
+          min: null
+          name: headers
+          options: []
+          placeholder: null
+          precision: null
+          required: false
+          scope: null
+          template: null
+          type: string
+        - auto_generate: null
+          default: 30
+          form: form
+          human_description:
+            en_US: Request timeout in seconds
+            ja_JP: Request timeout in seconds
+            pt_BR: Tempo limite da solicitação em segundos
+            zh_Hans: 请求超时（秒）
+          label:
+            en_US: Timeout (seconds)
+            ja_JP: Timeout (seconds)
+            pt_BR: Tempo Limite (segundos)
+            zh_Hans: 超时 (秒)
+          llm_description: The maximum time in seconds to wait for the webhook response
+          max: null
+          min: null
+          name: timeout
+          options: []
+          placeholder: null
+          precision: null
+          required: false
+          scope: null
+          template: null
+          type: number
+        params:
+          headers: ''
+          method: ''
+          text_input: ''
+          timeout: ''
+          webhook_url: ''
+        provider_id: gaurav0651/webhook_sender/webhook_sender
+        provider_name: gaurav0651/webhook_sender/webhook_sender
+        provider_type: builtin
+        selected: false
+        title: Webhook Sender (1)
+        tool_configurations:
+          headers:
+            type: mixed
+            value: '{}'
+          method:
+            type: constant
+            value: POST
+          timeout:
+            type: constant
+            value: 30
+          webhook_url:
+            type: mixed
+            value: '{{#1756334493587.completion_url#}}'
+        tool_description: Send text input to a configured webhook URL as JSON payload
+        tool_label: Webhook Sender
+        tool_name: webhook_sender
+        tool_node_version: '2'
+        tool_parameters:
+          text_input:
+            type: mixed
+            value: '{
+
+              "tweet_process_id": "{{#1756334493587.tweet_process_id#}}",
+
+              "status": "{{#1756405759241.status#}}",
+
+              "market_effect": "{{#1756405759241.market_effect#}}"
+
+              }'
+        type: tool
+      height: 168
+      id: '17566802034010'
+      position:
+        x: 482.76308373282563
+        y: -3.7326068129073917
+      positionAbsolute:
+        x: 482.76308373282563
+        y: -3.7326068129073917
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        desc: ''
+        is_team_authorization: true
+        output_schema: null
+        paramSchemas:
+        - auto_generate: null
+          default: null
+          form: llm
+          human_description:
+            en_US: The text content to send to the webhook
+            ja_JP: The text content to send to the webhook
+            pt_BR: O conteúdo de texto para enviar ao webhook
+            zh_Hans: 要发送到webhook的文本内容
+          label:
+            en_US: Text Input
+            ja_JP: Text Input
+            pt_BR: Entrada de Texto
+            zh_Hans: 文本输入
+          llm_description: The text content that will be sent to the webhook endpoint
+          max: null
+          min: null
+          name: text_input
+          options: []
+          placeholder: null
+          precision: null
+          required: true
+          scope: null
+          template: null
+          type: string
+        - auto_generate: null
+          default: null
+          form: form
+          human_description:
+            en_US: The webhook endpoint URL to send the data to
+            ja_JP: The webhook endpoint URL to send the data to
+            pt_BR: A URL do endpoint do webhook para enviar os dados
+            zh_Hans: 要发送数据的webhook端点URL
+          label:
+            en_US: Webhook URL
+            ja_JP: Webhook URL
+            pt_BR: URL do Webhook
+            zh_Hans: Webhook URL
+          llm_description: The full webhook URL endpoint where the text will be sent
+          max: null
+          min: null
+          name: webhook_url
+          options: []
+          placeholder: null
+          precision: null
+          required: true
+          scope: null
+          template: null
+          type: string
+        - auto_generate: null
+          default: POST
+          form: form
+          human_description:
+            en_US: The HTTP method to use for the webhook request
+            ja_JP: The HTTP method to use for the webhook request
+            pt_BR: O método HTTP a usar para a solicitação do webhook
+            zh_Hans: 用于webhook请求的HTTP方法
+          label:
+            en_US: HTTP Method
+            ja_JP: HTTP Method
+            pt_BR: Método HTTP
+            zh_Hans: HTTP 方法
+          llm_description: The HTTP method to use when calling the webhook
+          max: null
+          min: null
+          name: method
+          options:
+          - icon: ''
+            label:
+              en_US: POST
+              ja_JP: POST
+              pt_BR: POST
+              zh_Hans: POST
+            value: POST
+          - icon: ''
+            label:
+              en_US: PUT
+              ja_JP: PUT
+              pt_BR: PUT
+              zh_Hans: PUT
+            value: PUT
+          - icon: ''
+            label:
+              en_US: PATCH
+              ja_JP: PATCH
+              pt_BR: PATCH
+              zh_Hans: PATCH
+            value: PATCH
+          placeholder: null
+          precision: null
+          required: false
+          scope: null
+          template: null
+          type: select
+        - auto_generate: null
+          default: '{}'
+          form: form
+          human_description:
+            en_US: 'Optional custom headers in JSON format (e.g., {"Authorization":
+              "Bearer token"})'
+            ja_JP: 'Optional custom headers in JSON format (e.g., {"Authorization":
+              "Bearer token"})'
+            pt_BR: 'Cabeçalhos personalizados opcionais em formato JSON (ex: {"Authorization":
+              "Bearer token"})'
+            zh_Hans: '可选的JSON格式自定义头部 (例如: {"Authorization": "Bearer token"})'
+          label:
+            en_US: Custom Headers (JSON)
+            ja_JP: Custom Headers (JSON)
+            pt_BR: Cabeçalhos Personalizados (JSON)
+            zh_Hans: 自定义头部 (JSON)
+          llm_description: Optional custom headers to include in the webhook request,
+            provided as a JSON string
+          max: null
+          min: null
+          name: headers
+          options: []
+          placeholder: null
+          precision: null
+          required: false
+          scope: null
+          template: null
+          type: string
+        - auto_generate: null
+          default: 30
+          form: form
+          human_description:
+            en_US: Request timeout in seconds
+            ja_JP: Request timeout in seconds
+            pt_BR: Tempo limite da solicitação em segundos
+            zh_Hans: 请求超时（秒）
+          label:
+            en_US: Timeout (seconds)
+            ja_JP: Timeout (seconds)
+            pt_BR: Tempo Limite (segundos)
+            zh_Hans: 超时 (秒)
+          llm_description: The maximum time in seconds to wait for the webhook response
+          max: null
+          min: null
+          name: timeout
+          options: []
+          placeholder: null
+          precision: null
+          required: false
+          scope: null
+          template: null
+          type: number
+        params:
+          headers: ''
+          method: ''
+          text_input: ''
+          timeout: ''
+          webhook_url: ''
+        provider_id: gaurav0651/webhook_sender/webhook_sender
+        provider_name: gaurav0651/webhook_sender/webhook_sender
+        provider_type: builtin
+        selected: false
+        title: Webhook Sender (1)
+        tool_configurations:
+          headers:
+            type: mixed
+            value: '{}'
+          method:
+            type: constant
+            value: POST
+          timeout:
+            type: constant
+            value: 30
+          webhook_url:
+            type: mixed
+            value: '{{#1756334493587.completion_url#}}'
+        tool_description: Send text input to a configured webhook URL as JSON payload
+        tool_label: Webhook Sender
+        tool_name: webhook_sender
+        tool_node_version: '2'
+        tool_parameters:
+          text_input:
+            type: mixed
+            value: '{
+
+              "tweet_process_id": "{{#1756334493587.tweet_process_id#}}",
+
+              "status": "{{#17564060716760.status#}}",
+
+              "error_type": "{{#17564060716760.error_type#}}",
+
+              "error_message": "{{#17564060716760.error_message#}}"
+
+              }'
+        type: tool
+      height: 168
+      id: '17566802095340'
+      position:
+        x: 1442.0523608504877
+        y: -231.91644839043929
+      positionAbsolute:
+        x: 1442.0523608504877
+        y: -231.91644839043929
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        desc: ''
+        is_team_authorization: true
+        output_schema: null
+        paramSchemas:
+        - auto_generate: null
+          default: null
+          form: llm
+          human_description:
+            en_US: The text content to send to the webhook
+            ja_JP: The text content to send to the webhook
+            pt_BR: O conteúdo de texto para enviar ao webhook
+            zh_Hans: 要发送到webhook的文本内容
+          label:
+            en_US: Text Input
+            ja_JP: Text Input
+            pt_BR: Entrada de Texto
+            zh_Hans: 文本输入
+          llm_description: The text content that will be sent to the webhook endpoint
+          max: null
+          min: null
+          name: text_input
+          options: []
+          placeholder: null
+          precision: null
+          required: true
+          scope: null
+          template: null
+          type: string
+        - auto_generate: null
+          default: null
+          form: form
+          human_description:
+            en_US: The webhook endpoint URL to send the data to
+            ja_JP: The webhook endpoint URL to send the data to
+            pt_BR: A URL do endpoint do webhook para enviar os dados
+            zh_Hans: 要发送数据的webhook端点URL
+          label:
+            en_US: Webhook URL
+            ja_JP: Webhook URL
+            pt_BR: URL do Webhook
+            zh_Hans: Webhook URL
+          llm_description: The full webhook URL endpoint where the text will be sent
+          max: null
+          min: null
+          name: webhook_url
+          options: []
+          placeholder: null
+          precision: null
+          required: true
+          scope: null
+          template: null
+          type: string
+        - auto_generate: null
+          default: POST
+          form: form
+          human_description:
+            en_US: The HTTP method to use for the webhook request
+            ja_JP: The HTTP method to use for the webhook request
+            pt_BR: O método HTTP a usar para a solicitação do webhook
+            zh_Hans: 用于webhook请求的HTTP方法
+          label:
+            en_US: HTTP Method
+            ja_JP: HTTP Method
+            pt_BR: Método HTTP
+            zh_Hans: HTTP 方法
+          llm_description: The HTTP method to use when calling the webhook
+          max: null
+          min: null
+          name: method
+          options:
+          - icon: ''
+            label:
+              en_US: POST
+              ja_JP: POST
+              pt_BR: POST
+              zh_Hans: POST
+            value: POST
+          - icon: ''
+            label:
+              en_US: PUT
+              ja_JP: PUT
+              pt_BR: PUT
+              zh_Hans: PUT
+            value: PUT
+          - icon: ''
+            label:
+              en_US: PATCH
+              ja_JP: PATCH
+              pt_BR: PATCH
+              zh_Hans: PATCH
+            value: PATCH
+          placeholder: null
+          precision: null
+          required: false
+          scope: null
+          template: null
+          type: select
+        - auto_generate: null
+          default: '{}'
+          form: form
+          human_description:
+            en_US: 'Optional custom headers in JSON format (e.g., {"Authorization":
+              "Bearer token"})'
+            ja_JP: 'Optional custom headers in JSON format (e.g., {"Authorization":
+              "Bearer token"})'
+            pt_BR: 'Cabeçalhos personalizados opcionais em formato JSON (ex: {"Authorization":
+              "Bearer token"})'
+            zh_Hans: '可选的JSON格式自定义头部 (例如: {"Authorization": "Bearer token"})'
+          label:
+            en_US: Custom Headers (JSON)
+            ja_JP: Custom Headers (JSON)
+            pt_BR: Cabeçalhos Personalizados (JSON)
+            zh_Hans: 自定义头部 (JSON)
+          llm_description: Optional custom headers to include in the webhook request,
+            provided as a JSON string
+          max: null
+          min: null
+          name: headers
+          options: []
+          placeholder: null
+          precision: null
+          required: false
+          scope: null
+          template: null
+          type: string
+        - auto_generate: null
+          default: 30
+          form: form
+          human_description:
+            en_US: Request timeout in seconds
+            ja_JP: Request timeout in seconds
+            pt_BR: Tempo limite da solicitação em segundos
+            zh_Hans: 请求超时（秒）
+          label:
+            en_US: Timeout (seconds)
+            ja_JP: Timeout (seconds)
+            pt_BR: Tempo Limite (segundos)
+            zh_Hans: 超时 (秒)
+          llm_description: The maximum time in seconds to wait for the webhook response
+          max: null
+          min: null
+          name: timeout
+          options: []
+          placeholder: null
+          precision: null
+          required: false
+          scope: null
+          template: null
+          type: number
+        params:
+          headers: ''
+          method: ''
+          text_input: ''
+          timeout: ''
+          webhook_url: ''
+        provider_id: gaurav0651/webhook_sender/webhook_sender
+        provider_name: gaurav0651/webhook_sender/webhook_sender
+        provider_type: builtin
+        selected: false
+        title: Webhook Sender (1)
+        tool_configurations:
+          headers:
+            type: mixed
+            value: '{}'
+          method:
+            type: constant
+            value: POST
+          timeout:
+            type: constant
+            value: 30
+          webhook_url:
+            type: mixed
+            value: '{{#1756334493587.completion_url#}}'
+        tool_description: Send text input to a configured webhook URL as JSON payload
+        tool_label: Webhook Sender
+        tool_name: webhook_sender
+        tool_node_version: '2'
+        tool_parameters:
+          text_input:
+            type: mixed
+            value: '{
+
+              "tweet_process_id": "{{#1756334493587.tweet_process_id#}}",
+
+              "status": "{{#17564060158650.status#}}",
+
+              "error_type": "{{#17563652834850.error_type#}}",
+
+              "error_message": "{{#17563652834850.error_message#}}"
+
+              }'
+        type: tool
+      height: 168
+      id: '17566802100060'
+      position:
+        x: 1140.6208050569105
+        y: -139.86846671618565
+      positionAbsolute:
+        x: 1140.6208050569105
+        y: -139.86846671618565
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    viewport:
+      x: 14.184338488081949
+      y: 490.96184659469
+      zoom: 0.5943411059629454
