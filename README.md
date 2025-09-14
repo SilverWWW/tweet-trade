@@ -1,1 +1,1 @@
-# [Live now](https://tweet-trade.vercel.app/)
+# Live now at [tweettrade.online](https://tweettrade.online/)
