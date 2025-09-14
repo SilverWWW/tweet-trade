@@ -16,7 +16,7 @@ The process executes in the following sequence:
     * If the determination is `no`, the workflow immediately reports a `status: ok` with `market_effect: no` to the completion webhook and terminates.
     * If `yes`, the workflow proceeds to the primary analysis stage.
 
-4.  **Agent-based Analysis**: A `ReAct` agent powered by `gpt-5-mini` is activated. This agent assumes the role of a financial analyst and has access to **Yahoo Finance** tools for fetching ticker data and news. It uses the initial triage results and its tools to formulate a list of specific trades.
+4.  **Agent-based Analysis**: A `ReAct` agent powered by `gpt-5-mini` is activated. This agent assumes the role of a financial analyst and has access to **Yahoo Finance**, **Yahoo News**, and **Google Search** tools for fetching relevant information. It uses the initial triage results and its tools to formulate a list of specific trades.
 
 5.  **Output & Reporting**: The agent's proposed trades are parsed and validated.
     * **On Success**: A JSON payload containing the `tweet_process_id`, `status: ok`, `market_effect: yes`, and the list of `trades` is sent to the completion webhook.
