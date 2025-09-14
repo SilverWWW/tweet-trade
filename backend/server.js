@@ -4,6 +4,8 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 require('dotenv').config();
 
+const { requireAuth } = require('./middleware/auth');
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -26,6 +28,9 @@ app.use(cors({
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
+
+// Authorization middleware - protect all API routes
+app.use('/api', requireAuth);
 
 // Import routes
 const healthRoutes = require('./routes/health');
