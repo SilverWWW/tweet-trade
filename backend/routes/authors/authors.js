@@ -139,7 +139,7 @@ router.get('/:id', async (req, res) => {
     }
 
     const [author] = await sql`
-      SELECT id, platform_id, name, author_context, created_at 
+      SELECT id, platform_id, name, author_context, created_at, platform
       FROM subscribed_authors
       WHERE id = ${id}
     `;

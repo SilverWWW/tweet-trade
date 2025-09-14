@@ -11,7 +11,7 @@ const sql = neon(process.env.DATABASE_URL);
  * @param {boolean} market_effect - Filter by market effect (optional)
  * @param {number} limit - Maximum number of results (optional, default: 50, max: 100)
  * @param {number} offset - Number of results to skip (optional, default: 0)
- * @param {string} status - Filter by status (optional: 'pending', 'completed', 'error')
+ * @param {string} status - Filter by status (optional: 'submitted', 'completed', 'error')
  * 
  * @returns {object} 200 - Tweets retrieved successfully
  * @returns {object} 400 - Invalid parameters
