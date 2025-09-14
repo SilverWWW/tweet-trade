@@ -12,6 +12,7 @@ load_dotenv()
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 API_BASE_URL = os.environ.get("API_BASE_URL")
+ADMIN_API_KEY = os.environ.get("ADMIN_API_KEY")
 WEBSOCKET_BASE_URL = "wss://jetstream1.us-west.bsky.network/subscribe"
 
 if not API_BASE_URL:
@@ -98,11 +99,14 @@ async def websocket_client(subscribed_dids):
                                             "tweet_author_id": author_id,
                                             "tweet_content": post_text
                                         }
+                                        headers = {
+                                            "Authorization": f"Bearer {ADMIN_API_KEY}"
+                                        }
 
                                         try:
                                             async with httpx.AsyncClient() as client:
                                                 logging.info(f"   -> Sending post to workflow API: {trigger_workflow_url}")
-                                                response = await client.post(trigger_workflow_url, json=payload, timeout=15.0)
+                                                response = await client.post(trigger_workflow_url, json=payload, headers=headers, timeout=15.0)
                                                 response.raise_for_status() # Raise exception for 4xx/5xx responses
                                                 logging.info(f"   -> Successfully triggered workflow. Status: {response.status_code}")
                                         except httpx.HTTPStatusError as e:
