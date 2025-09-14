@@ -32,7 +32,10 @@ async def fetch_subscribed_authors():
     logging.info(f"Fetching authors from API at {authors_endpoint}")
     try:
         async with httpx.AsyncClient() as client:
-            response = await client.get(authors_endpoint, timeout=10.0)
+            headers = {
+                "Authorization": f"Bearer {ADMIN_API_KEY}"
+            }
+            response = await client.get(authors_endpoint, headers=headers, timeout=10.0)
             response.raise_for_status()
             authors = response.json()
             if not authors:
