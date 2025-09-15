@@ -22,7 +22,7 @@ app.use(limiter);
 // CORS configuration
 app.use(cors({
   origin: process.env.NODE_ENV === 'production' 
-    ? ['http://localhost:3000', 'https://tweet-trade-frontend.vercel.app'] // Allow localhost for development and your frontend domain
+    ? ['http://localhost:3000', 'https://tweet-trade-frontend-placeholder.vercel.app'] // Allow localhost for development and your frontend domain
     : true,
   credentials: true
 }));
