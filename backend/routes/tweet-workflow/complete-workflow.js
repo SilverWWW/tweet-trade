@@ -21,10 +21,19 @@ async function executeBuyOrder(ticker, dollarAmount) {
       ? `http://${baseUrl}/api/trading/execute/stock/buy`
       : `https://${baseUrl}/api/trading/execute/stock/buy`;
 
-    const response = await axios.post(orderUrl, {
-      ticker,
-      dollarAmount
-    });
+    const authHeader = `Bearer ${process.env.ADMIN_API_KEY}`;
+
+    const response = await axios.post(
+      orderUrl, {
+        ticker,
+        dollarAmount
+      },
+      {
+        headers: {
+          'Authorization': `Bearer ${process.env.ADMIN_API_KEY}`
+        }
+      }
+    );
     
     return response.data;
   } catch (error) {
