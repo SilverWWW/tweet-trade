@@ -22,7 +22,7 @@ app.use(limiter);
 // CORS configuration
 app.use(cors({
   origin: process.env.NODE_ENV === 'production' 
-    ? ['http://localhost:3000', 'https://tweettrade.online']
+    ? ['http://localhost:3000', 'https://www.tweettrade.online']
     : true,
   credentials: true
 }));
