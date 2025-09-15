@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   ChevronLeft,
   ChevronRight,
@@ -26,7 +26,8 @@ export default function TweetCard({ tweet }: TweetCardProps) {
   const [queuedTrades, setQueuedTrades] = useState<QueuedTrade[]>([]);
   const [executedTrades, setExecutedTrades] = useState<ExecutedTrade[]>([]);
   const [loading, setLoading] = useState(true);
-  const [currentTradeIndex, setCurrentTradeIndex] = useState(0);
+  const tradesContainerRef = useRef<HTMLDivElement>(null);
+  const [containerWidth, setContainerWidth] = useState(0);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -53,7 +54,37 @@ export default function TweetCard({ tweet }: TweetCardProps) {
   }, [tweet.tweet_process_id, tweet.author_id]);
 
   const allTrades = [...queuedTrades, ...executedTrades];
-  const currentTrade = allTrades[currentTradeIndex];
+
+  // Measure container width and update CSS custom property
+  useEffect(() => {
+    const updateContainerWidth = () => {
+      if (tradesContainerRef.current) {
+        const width = tradesContainerRef.current.offsetWidth;
+        setContainerWidth(width);
+        tradesContainerRef.current.style.setProperty(
+          "--container-width",
+          `${width}px`
+        );
+
+        // Calculate animation duration based on number of cards
+        const baseDuration = 10; // base duration in seconds
+        const cardCount = allTrades.length;
+        const duration = Math.max(
+          baseDuration,
+          baseDuration + (cardCount - 1) * 0.5
+        );
+        tradesContainerRef.current.style.setProperty(
+          "--animation-duration",
+          `${duration}s`
+        );
+      }
+    };
+
+    updateContainerWidth();
+    window.addEventListener("resize", updateContainerWidth);
+
+    return () => window.removeEventListener("resize", updateContainerWidth);
+  }, [allTrades]);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
@@ -74,16 +105,6 @@ export default function TweetCard({ tweet }: TweetCardProps) {
     }).format(parseFloat(amount));
   };
 
-  const nextTrade = () => {
-    setCurrentTradeIndex((prev) => (prev + 1) % allTrades.length);
-  };
-
-  const prevTrade = () => {
-    setCurrentTradeIndex(
-      (prev) => (prev - 1 + allTrades.length) % allTrades.length
-    );
-  };
-
   if (loading) {
     return (
       <div className="bg-white rounded-xl border border-twitter-100 p-6 animate-pulse shadow-sm">
@@ -95,9 +116,9 @@ export default function TweetCard({ tweet }: TweetCardProps) {
   }
 
   return (
-    <div className="bg-twitter-25 rounded-xl border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow">
+    <div className="bg-twitter-25 rounded-xl border border-gray-200 pt-6 pb-6 shadow-sm hover:shadow-md transition-shadow">
       {/* Profile picture */}
-      <div className="flex items-top gap-3">
+      <div className="flex items-top gap-3 pl-6 pr-6">
         <div className="w-12 h-12 bg-twitter-500 rounded-full flex shrink-0 items-center justify-center text-white font-semibold shadow-sm">
           {author?.name?.charAt(0)?.toUpperCase() || "?"}
         </div>
@@ -132,97 +153,98 @@ export default function TweetCard({ tweet }: TweetCardProps) {
       {/* Trades Section */}
       {allTrades.length > 0 && (
         <div className="border-t border-twitter-100 pt-2">
-          <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center justify-between mb-3 pl-6 pr-6">
             <h4 className="font-semibold text-gray-900 flex items-center gap-2">
               <TrendingUp className="w-4 h-4 text-twitter-500" />
               Trades ({allTrades.length})
             </h4>
-            {allTrades.length > 1 && (
-              <div className="flex gap-2">
-                <button
-                  onClick={prevTrade}
-                  className="p-2 rounded-lg hover:bg-twitter-50 text-twitter-500 hover:text-twitter-600 transition-colors"
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={nextTrade}
-                  className="p-2 rounded-lg hover:bg-twitter-50 text-twitter-500 hover:text-twitter-600 transition-colors"
-                >
-                  <ChevronRight className="w-4 h-4" />
-                </button>
-              </div>
-            )}
           </div>
 
-          {currentTrade && (
-            <div className="bg-white rounded-xl p-5 border border-gray-100 shadow-sm">
-              <div className="flex items-center gap-3 mb-4">
-                <TrendingUp className="w-6 h-6 text-twitter-500" />
-                <span className="font-mono font-bold text-xl text-twitter-900">
-                  ${currentTrade.ticker}
-                </span>
-                <span
-                  className={`px-3 py-1 rounded-full text-xs font-medium ${
-                    "executed_at" in currentTrade
-                      ? "bg-green-100 text-green-800 border border-green-200"
-                      : "bg-twitter-100 text-twitter-800 border border-twitter-200"
-                  }`}
+          <div
+            ref={tradesContainerRef}
+            className="relative overflow-hidden rounded-lg"
+          >
+            <div
+              className="floating-train flex gap-4"
+              style={{ width: "max-content" }}
+            >
+              {allTrades.map((trade, index) => (
+                <div
+                  key={`${trade.id}-${index}`}
+                  className="flex-shrink-0 bg-white rounded-xl p-5 border border-gray-100 shadow-sm"
+                  style={{
+                    width: "500px",
+                    minHeight: "300px",
+                  }}
                 >
-                  {"executed_at" in currentTrade ? "Executed" : "Queued"}
-                </span>
-              </div>
+                  <div className="flex items-center gap-3 mb-4">
+                    <TrendingUp className="w-6 h-6 text-twitter-500" />
+                    <span className="font-mono font-bold text-xl text-twitter-900">
+                      ${trade.ticker}
+                    </span>
+                    <span
+                      className={`px-3 py-1 rounded-full text-xs font-medium ${
+                        "executed_at" in trade
+                          ? "bg-green-100 text-green-800 border border-green-200"
+                          : "bg-twitter-100 text-twitter-800 border border-twitter-200"
+                      }`}
+                    >
+                      {"executed_at" in trade ? "Executed" : "Queued"}
+                    </span>
+                  </div>
 
-              <div className="grid grid-cols-3 gap-4 mb-4">
-                <div className="flex items-center gap-2">
-                  <DollarSign className="w-5 h-5 text-twitter-500" />
-                  <div>
-                    <div className="text-xs text-twitter-500 font-medium">
-                      Amount
+                  <div className="grid grid-cols-3 gap-4 mb-4">
+                    <div className="flex items-center gap-2">
+                      <DollarSign className="w-5 h-5 text-twitter-500" />
+                      <div>
+                        <div className="text-xs text-twitter-500 font-medium">
+                          Amount
+                        </div>
+                        <div className="font-bold text-twitter-900">
+                          {formatCurrency(trade.dollar_amount)}
+                        </div>
+                      </div>
                     </div>
-                    <div className="font-bold text-twitter-900">
-                      {formatCurrency(currentTrade.dollar_amount)}
+                    <div className="flex items-center gap-2">
+                      <Calendar className="w-5 h-5 text-twitter-500" />
+                      <div>
+                        <div className="text-xs text-twitter-500 font-medium">
+                          Hold
+                        </div>
+                        <div className="font-bold text-twitter-900">
+                          {trade.days_to_hold}d
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Clock className="w-5 h-5 text-twitter-500" />
+                      <div>
+                        <div className="text-xs text-twitter-500 font-medium">
+                          Time
+                        </div>
+                        <div className="font-bold text-twitter-900 text-sm">
+                          {formatDate(
+                            "executed_at" in trade
+                              ? trade.executed_at
+                              : trade.queued_at
+                          )}
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Calendar className="w-5 h-5 text-twitter-500" />
-                  <div>
-                    <div className="text-xs text-twitter-500 font-medium">
-                      Hold
-                    </div>
-                    <div className="font-bold text-twitter-900">
-                      {currentTrade.days_to_hold}d
-                    </div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Clock className="w-5 h-5 text-twitter-500" />
-                  <div>
-                    <div className="text-xs text-twitter-500 font-medium">
-                      Time
-                    </div>
-                    <div className="font-bold text-twitter-900 text-sm">
-                      {formatDate(
-                        "executed_at" in currentTrade
-                          ? currentTrade.executed_at
-                          : currentTrade.queued_at
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
 
-              <div className="bg-twitter-25 rounded-lg p-3 border border-gray-100 shadow-sm">
-                <div className="text-xs font-semibold text-twitter-900 mb-1">
-                  Reasoning:
+                  <div className="bg-twitter-25 rounded-lg p-3 border border-gray-100">
+                    <div className="text-sm font-semibold text-twitter-900 mb-2">
+                      Trading Reasoning:
+                    </div>
+                    <p className="text-sm text-gray-700 leading-relaxed break-words overflow-wrap-anywhere">
+                      {trade.reasoning}
+                    </p>
+                  </div>
                 </div>
-                <p className="text-sm text-gray-700 leading-relaxed">
-                  {currentTrade.reasoning}
-                </p>
-              </div>
+              ))}
             </div>
-          )}
+          </div>
         </div>
       )}
     </div>

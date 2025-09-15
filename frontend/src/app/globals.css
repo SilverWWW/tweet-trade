@@ -36,3 +36,16 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+@keyframes slideLeft {
+  0% {
+    transform: translateX(2%);
+  }
+  100% {
+    transform: translateX(calc(-102% + var(--container-width , 100vw)));
+  }
+}
+
+.floating-train {
+  animation: slideLeft var(--animation-duration, 3s) ease-in-out infinite alternate;
+}
