@@ -1,11 +1,11 @@
-const API_BASE_URL = "https://tweet-trade-backend.vercel.app/api";
-const ADMIN_API_KEY = "########";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
+const ADMIN_API_KEY = process.env.NEXT_PUBLIC_ADMIN_API_KEY
 
 export interface TweetProcess {
   tweet_process_id: string;
   tweet_content: string;
   submitted_at: string;
-  status: "pending" | "completed" | "error";
+  status: "submitted" | "completed" | "error";
   error?: string;
   market_effect: boolean;
   completed_at?: string;
