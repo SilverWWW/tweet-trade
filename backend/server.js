@@ -15,14 +15,15 @@ app.use(helmet());
 // Rate limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100 // limit each IP to 100 requests per windowMs
+  max: process.env.NODE_ENV === 'production' ? 100 : 1000,
+  message: 'Too many requests, please try again later.'
 });
 app.use(limiter);
 
 // CORS configuration
 app.use(cors({
   origin: process.env.NODE_ENV === 'production' 
-    ? ['http://localhost:3000', 'https://www.tweettrade.online']
+    ? ['http://localhost:3000','http://localhost:3001', 'https://www.tweettrade.online']
     : true,
   credentials: true
 }));
@@ -43,8 +44,7 @@ const tweetProcessesRoutes = require('./routes/tweets/tweet_processes');
 const executeOptionRoutes = require('./routes/trading/execute/option');
 const executeStockRoutes = require('./routes/trading/execute/stock');
 const accountRoutes = require('./routes/trading/account');
-const tradesQueuedRoutes = require('./routes/trades/trades_queued');
-const tradesExecutedRoutes = require('./routes/trades/trades_executed');
+const tradesRoutes = require('./routes/trades/trades');
 
 // Use routes
 app.use('/api/health', healthRoutes);
@@ -55,8 +55,7 @@ app.use('/api/tweets', tweetProcessesRoutes);
 app.use('/api/trading/execute/option', executeOptionRoutes);
 app.use('/api/trading/execute/stock', executeStockRoutes);
 app.use('/api/trading/account', accountRoutes);
-app.use('/api/trades/queued', tradesQueuedRoutes);
-app.use('/api/trades/executed', tradesExecutedRoutes);
+app.use('/api/trades', tradesRoutes);
 
 // Root endpoint
 app.get('/', (req, res) => {

@@ -5,10 +5,10 @@ const router = express.Router();
 const sql = neon(process.env.DATABASE_URL);
 
 /**
- * GET /api/trading/trades/queued
- * Get all queued trades
+ * GET /api/trades
+ * Get all trades
  * 
- * @returns {object} 200 - All queued trades retrieved successfully
+ * @returns {object} 200 - All trades retrieved successfully
  * @returns {object} 500 - Server error
  */
 router.get('/', async (req, res) => {
@@ -22,8 +22,9 @@ router.get('/', async (req, res) => {
         reasoning,
         queued_at,
         executed,
+        executed_at,
         days_to_hold
-      FROM trades_queued
+      FROM trades
       ORDER BY queued_at DESC
     `;
 
@@ -34,22 +35,22 @@ router.get('/', async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Error fetching queued trades:', error);
+    console.error('Error fetching trades:', error);
     res.status(500).json({
       error: 'Internal server error',
-      message: 'Failed to fetch queued trades'
+      message: 'Failed to fetch trades'
     });
   }
 });
 
 /**
- * GET /api/trading/trades/queued/count
- * Get the total count of queued trades
+ * GET /api/trades/count
+ * Get the total count of trades
  * 
  * @param {boolean} executed - Filter by execution status (optional)
  * @param {string} ticker - Filter by ticker symbol (optional)
  * 
- * @returns {object} 200 - Queued trades count retrieved successfully
+ * @returns {object} 200 - Trades count retrieved successfully
  * @returns {object} 400 - Invalid parameters
  * @returns {object} 500 - Server error
  */
@@ -86,25 +87,25 @@ router.get('/count', async (req, res) => {
     if (executedFilter !== null && ticker) {
       // Both filters
       countResult = await sql`
-        SELECT COUNT(*) as total FROM trades_queued 
+        SELECT COUNT(*) as total FROM trades 
         WHERE executed = ${executedFilter} AND ticker = ${ticker}
       `;
     } else if (executedFilter !== null) {
       // Only executed filter
       countResult = await sql`
-        SELECT COUNT(*) as total FROM trades_queued 
+        SELECT COUNT(*) as total FROM trades 
         WHERE executed = ${executedFilter}
       `;
     } else if (ticker) {
       // Only ticker filter
       countResult = await sql`
-        SELECT COUNT(*) as total FROM trades_queued 
+        SELECT COUNT(*) as total FROM trades 
         WHERE ticker = ${ticker}
       `;
     } else {
       // No filters - get total count
       countResult = await sql`
-        SELECT COUNT(*) as total FROM trades_queued
+        SELECT COUNT(*) as total FROM trades
       `;
     }
 
@@ -122,21 +123,21 @@ router.get('/count', async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Error fetching queued trades count:', error);
+    console.error('Error fetching trades count:', error);
     res.status(500).json({
       error: 'Internal server error',
-      message: 'Failed to fetch queued trades count'
+      message: 'Failed to fetch trades count'
     });
   }
 });
 
 /**
- * GET /api/trading/trades/queued/:tweet_process_id
- * Get all queued trades with a specific tweet_process_id
+ * GET /api/trades/:tweet_process_id
+ * Get all trades with a specific tweet_process_id
  * 
  * @param {string} tweet_process_id - The tweet process ID to filter by
  * 
- * @returns {object} 200 - Queued trades retrieved successfully
+ * @returns {object} 200 - Trades retrieved successfully
  * @returns {object} 400 - Invalid tweet_process_id parameter
  * @returns {object} 500 - Server error
  */
@@ -160,8 +161,9 @@ router.get('/:tweet_process_id', async (req, res) => {
         reasoning,
         queued_at,
         executed,
+        executed_at,
         days_to_hold
-      FROM trades_queued
+      FROM trades
       WHERE tweet_process_id = ${tweet_process_id}
       ORDER BY queued_at DESC
     `;
@@ -174,10 +176,10 @@ router.get('/:tweet_process_id', async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Error fetching queued trades by tweet_process_id:', error);
+    console.error('Error fetching trades by tweet_process_id:', error);
     res.status(500).json({
       error: 'Internal server error',
-      message: 'Failed to fetch queued trades'
+      message: 'Failed to fetch trades'
     });
   }
 });
