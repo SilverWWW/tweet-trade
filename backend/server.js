@@ -43,8 +43,8 @@ const tweetProcessesRoutes = require('./routes/tweets/tweet_processes');
 const executeOptionRoutes = require('./routes/trading/execute/option');
 const executeStockRoutes = require('./routes/trading/execute/stock');
 const accountRoutes = require('./routes/trading/account');
-const tradesQueuedRoutes = require('./routes/trading/trades/trades_queued');
-const tradesExecutedRoutes = require('./routes/trading/trades/trades_executed');
+const tradesQueuedRoutes = require('./routes/trades/trades_queued');
+const tradesExecutedRoutes = require('./routes/trades/trades_executed');
 
 // Use routes
 app.use('/api/health', healthRoutes);
@@ -55,8 +55,8 @@ app.use('/api/tweets', tweetProcessesRoutes);
 app.use('/api/trading/execute/option', executeOptionRoutes);
 app.use('/api/trading/execute/stock', executeStockRoutes);
 app.use('/api/trading/account', accountRoutes);
-app.use('/api/trading/trades/queued', tradesQueuedRoutes);
-app.use('/api/trading/trades/executed', tradesExecutedRoutes);
+app.use('/api/trades/queued', tradesQueuedRoutes);
+app.use('/api/trades/executed', tradesExecutedRoutes);
 
 // Root endpoint
 app.get('/', (req, res) => {
