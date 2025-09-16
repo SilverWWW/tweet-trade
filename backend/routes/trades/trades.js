@@ -132,6 +132,92 @@ router.get('/count', async (req, res) => {
 });
 
 /**
+ * GET /api/trades/volume
+ * Get the total dollar volume of all executed trades
+ * 
+ * @param {boolean} executed - Filter by execution status (optional, defaults to true for executed trades)
+ * @param {string} ticker - Filter by ticker symbol (optional)
+ * 
+ * @returns {object} 200 - Volume data retrieved successfully
+ * @returns {object} 400 - Invalid parameters
+ * @returns {object} 500 - Server error
+ */
+router.get('/volume', async (req, res) => {
+  try {
+    const { executed, ticker } = req.query;
+
+    // Default to executed trades only if not specified
+    let executedFilter = true;
+    if (executed !== undefined) {
+      if (executed === 'true') {
+        executedFilter = true;
+      } else if (executed === 'false') {
+        executedFilter = false;
+      } else {
+        return res.status(400).json({
+          error: 'Invalid executed parameter',
+          message: 'Executed must be "true" or "false"'
+        });
+      }
+    }
+
+    // Validate ticker if provided
+    if (ticker && (typeof ticker !== 'string' || ticker.trim().length === 0)) {
+      return res.status(400).json({
+        error: 'Invalid ticker parameter',
+        message: 'Ticker must be a non-empty string'
+      });
+    }
+
+    // Build the volume query based on filters
+    let volumeResult;
+
+    if (ticker) {
+      // Filter by both execution status and ticker
+      volumeResult = await sql`
+        SELECT 
+          COALESCE(SUM(dollar_amount), 0) as total_volume,
+          COUNT(*) as trade_count
+        FROM trades 
+        WHERE executed = ${executedFilter} AND ticker = ${ticker}
+      `;
+    } else {
+      // Filter by execution status only
+      volumeResult = await sql`
+        SELECT 
+          COALESCE(SUM(dollar_amount), 0) as total_volume,
+          COUNT(*) as trade_count
+        FROM trades 
+        WHERE executed = ${executedFilter}
+      `;
+    }
+
+    const totalVolume = parseFloat(volumeResult[0].total_volume);
+    const tradeCount = parseInt(volumeResult[0].trade_count);
+
+    res.json({
+      success: true,
+      data: {
+        total_volume: totalVolume,
+        trade_count: tradeCount,
+        average_trade_size: tradeCount > 0 ? totalVolume / tradeCount : 0
+      },
+      filters: {
+        executed: executedFilter,
+        ticker: ticker || null
+      }
+    });
+
+  } catch (error) {
+    console.error('Error fetching trades volume:', error);
+    res.status(500).json({
+      error: 'Internal server error',
+      message: 'Failed to fetch trades volume'
+    });
+  }
+});
+
+/**
  * GET /api/trades/:tweet_process_id
  * Get all trades with a specific tweet_process_id
  * 
