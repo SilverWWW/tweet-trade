@@ -28,13 +28,6 @@ export default function TweetCard({ tweet }: TweetCardProps) {
   const [loading, setLoading] = useState(true);
   const tradesContainerRef = useRef<HTMLDivElement>(null);
   const [containerWidth, setContainerWidth] = useState(0);
-  const [animationDelay, setAnimationDelay] = useState(0);
-
-  // Generate random animation delay on mount
-  useEffect(() => {
-    const randomDelay = Math.random() * 5; // Random delay between 0-5 seconds
-    setAnimationDelay(randomDelay);
-  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -80,10 +73,6 @@ export default function TweetCard({ tweet }: TweetCardProps) {
         tradesContainerRef.current.style.setProperty(
           "--animation-duration",
           `${duration}s`
-        );
-        tradesContainerRef.current.style.setProperty(
-          "--animation-delay",
-          `${animationDelay}s`
         );
       }
     };
