@@ -28,6 +28,13 @@ export default function TweetCard({ tweet }: TweetCardProps) {
   const [loading, setLoading] = useState(true);
   const tradesContainerRef = useRef<HTMLDivElement>(null);
   const [containerWidth, setContainerWidth] = useState(0);
+  const [animationDelay, setAnimationDelay] = useState(0);
+
+  // Generate random animation delay on mount
+  useEffect(() => {
+    const randomDelay = Math.random() * 5; // Random delay between 0-5 seconds
+    setAnimationDelay(randomDelay);
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -69,13 +76,14 @@ export default function TweetCard({ tweet }: TweetCardProps) {
         // Calculate animation duration based on number of cards
         const baseDuration = 10; // base duration in seconds
         const cardCount = allTrades.length;
-        const duration = Math.max(
-          baseDuration,
-          baseDuration + (cardCount - 1) * 0.5
-        );
+        const duration = Math.max(baseDuration, baseDuration + (cardCount - 1));
         tradesContainerRef.current.style.setProperty(
           "--animation-duration",
           `${duration}s`
+        );
+        tradesContainerRef.current.style.setProperty(
+          "--animation-delay",
+          `${animationDelay}s`
         );
       }
     };
@@ -93,6 +101,7 @@ export default function TweetCard({ tweet }: TweetCardProps) {
       day: "numeric",
       hour: "2-digit",
       minute: "2-digit",
+      timeZoneName: "short",
     });
   };
 

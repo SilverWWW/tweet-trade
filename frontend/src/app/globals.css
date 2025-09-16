@@ -48,4 +48,5 @@ body {
 
 .floating-train {
   animation: slideLeft var(--animation-duration, 3s) ease-in-out infinite alternate;
+  animation-delay: var(--animation-delay, 0s);
 }
