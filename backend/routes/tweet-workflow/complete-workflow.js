@@ -54,7 +54,7 @@ async function executeBuyOrder(ticker, dollarAmount) {
 async function queueTrade(tweetProcessId, ticker, dollar_amount, days_to_hold, reasoning) {
   try {
     await sql`
-      INSERT INTO trades_queued (
+      INSERT INTO trades (
         tweet_process_id, ticker, dollar_amount, days_to_hold, reasoning
       ) VALUES (
         ${tweetProcessId}, ${ticker}, ${dollar_amount}, ${days_to_hold}, ${reasoning}
