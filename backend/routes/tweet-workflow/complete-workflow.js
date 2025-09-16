@@ -79,10 +79,10 @@ async function queueTrade(tweetProcessId, ticker, dollar_amount, days_to_hold, r
 async function logExecutedTrade(tweetProcessId, ticker, dollar_amount, reasoning, days_to_hold) {
   try {
     await sql`
-      INSERT INTO trades_executed (
-        tweet_process_id, ticker, dollar_amount, reasoning, days_to_hold
+      INSERT INTO trades (
+        tweet_process_id, ticker, dollar_amount, reasoning, days_to_hold, executed, executed_at
       ) VALUES (
-        ${tweetProcessId}, ${ticker}, ${dollar_amount}, ${reasoning}, ${days_to_hold}
+        ${tweetProcessId}, ${ticker}, ${dollar_amount}, ${reasoning}, ${days_to_hold}, true, NOW()
       )
     `;
     console.log(`Successfully logged executed trade for ${ticker}`);
