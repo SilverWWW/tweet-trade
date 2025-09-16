@@ -74,7 +74,7 @@ export default function Home() {
         <div className="container mx-auto px-4 py-8">
           <div className="flex items-center justify-center py-12">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-twitter-500"></div>
-            <span className="ml-3 text-twitter-700 font-medium">
+            <span className="ml-3 text-twitter-500 font-medium">
               Loading tweets...
             </span>
           </div>

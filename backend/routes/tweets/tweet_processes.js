@@ -332,4 +332,93 @@ router.get('/processes/author/:author_id', async (req, res) => {
   }
 });
 
+/**
+ * GET /api/tweets/processes/count
+ * Get the total count of tweets in the tweet_processes table
+ * 
+ * @param {boolean} market_effect - Filter by market effect (optional)
+ * @param {string} status - Filter by status (optional: 'pending', 'completed', 'error')
+ * 
+ * @returns {object} 200 - Tweet count retrieved successfully
+ * @returns {object} 400 - Invalid parameters
+ * @returns {object} 500 - Server error
+ */
+router.get('/processes/count', async (req, res) => {
+  try {
+    const { market_effect, status } = req.query;
+
+    // Validate market_effect if provided
+    let marketEffectFilter = null;
+    if (market_effect !== undefined) {
+      if (market_effect === 'true') {
+        marketEffectFilter = true;
+      } else if (market_effect === 'false') {
+        marketEffectFilter = false;
+      } else {
+        return res.status(400).json({
+          error: 'Invalid market_effect parameter',
+          message: 'Market effect must be "true" or "false"'
+        });
+      }
+    }
+
+    // Validate status if provided
+    const validStatuses = ['pending', 'completed', 'error'];
+    if (status && !validStatuses.includes(status)) {
+      return res.status(400).json({
+        error: 'Invalid status parameter',
+        message: `Status must be one of: ${validStatuses.join(', ')}`
+      });
+    }
+
+    // Build the count query based on filters
+    let countResult;
+
+    if (marketEffectFilter !== null && status) {
+      // Both filters
+      countResult = await sql`
+        SELECT COUNT(*) as total FROM tweet_processes 
+        WHERE market_effect = ${marketEffectFilter} AND status = ${status}
+      `;
+    } else if (marketEffectFilter !== null) {
+      // Only market_effect filter
+      countResult = await sql`
+        SELECT COUNT(*) as total FROM tweet_processes 
+        WHERE market_effect = ${marketEffectFilter}
+      `;
+    } else if (status) {
+      // Only status filter
+      countResult = await sql`
+        SELECT COUNT(*) as total FROM tweet_processes 
+        WHERE status = ${status}
+      `;
+    } else {
+      // No filters - get total count
+      countResult = await sql`
+        SELECT COUNT(*) as total FROM tweet_processes
+      `;
+    }
+
+    const total = parseInt(countResult[0].total);
+
+    res.json({
+      success: true,
+      data: {
+        total
+      },
+      filters: {
+        market_effect: marketEffectFilter,
+        status: status || null
+      }
+    });
+
+  } catch (error) {
+    console.error('Error fetching tweet count:', error);
+    res.status(500).json({
+      error: 'Internal server error',
+      message: 'Failed to fetch tweet count'
+    });
+  }
+});
+
 module.exports = router;

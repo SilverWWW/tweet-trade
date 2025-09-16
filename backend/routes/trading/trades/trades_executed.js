@@ -92,4 +92,63 @@ router.get('/:tweet_process_id', async (req, res) => {
   }
 });
 
+/**
+ * GET /api/trading/trades/executed/count
+ * Get the total count of executed trades
+ * 
+ * @param {string} ticker - Filter by ticker symbol (optional)
+ * 
+ * @returns {object} 200 - Executed trades count retrieved successfully
+ * @returns {object} 400 - Invalid parameters
+ * @returns {object} 500 - Server error
+ */
+router.get('/count', async (req, res) => {
+  try {
+    const { ticker } = req.query;
+
+    // Validate ticker if provided
+    if (ticker && (typeof ticker !== 'string' || ticker.trim().length === 0)) {
+      return res.status(400).json({
+        error: 'Invalid ticker parameter',
+        message: 'Ticker must be a non-empty string'
+      });
+    }
+
+    // Build the count query based on filters
+    let countResult;
+
+    if (ticker) {
+      // With ticker filter
+      countResult = await sql`
+        SELECT COUNT(*) as total FROM trades_executed 
+        WHERE ticker = ${ticker}
+      `;
+    } else {
+      // No filters - get total count
+      countResult = await sql`
+        SELECT COUNT(*) as total FROM trades_executed
+      `;
+    }
+
+    const total = parseInt(countResult[0].total);
+
+    res.json({
+      success: true,
+      data: {
+        total
+      },
+      filters: {
+        ticker: ticker || null
+      }
+    });
+
+  } catch (error) {
+    console.error('Error fetching executed trades count:', error);
+    res.status(500).json({
+      error: 'Internal server error',
+      message: 'Failed to fetch executed trades count'
+    });
+  }
+});
+
 module.exports = router;
