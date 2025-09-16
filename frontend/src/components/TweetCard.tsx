@@ -9,13 +9,8 @@ import {
   Calendar,
   Clock,
 } from "lucide-react";
-import type {
-  TweetProcess,
-  Author,
-  QueuedTrade,
-  ExecutedTrade,
-} from "@/lib/api";
-import { fetchAuthor, fetchQueuedTrades, fetchExecutedTrades } from "@/lib/api";
+import type { TweetProcess, Author, Trade } from "@/lib/api";
+import { fetchAuthor, fetchTrades } from "@/lib/api";
 
 interface TweetCardProps {
   tweet: TweetProcess;
@@ -23,8 +18,7 @@ interface TweetCardProps {
 
 export default function TweetCard({ tweet }: TweetCardProps) {
   const [author, setAuthor] = useState<Author | null>(null);
-  const [queuedTrades, setQueuedTrades] = useState<QueuedTrade[]>([]);
-  const [executedTrades, setExecutedTrades] = useState<ExecutedTrade[]>([]);
+  const [trades, setTrades] = useState<Trade[]>([]);
   const [loading, setLoading] = useState(true);
   const tradesContainerRef = useRef<HTMLDivElement>(null);
   const [containerWidth, setContainerWidth] = useState(0);
@@ -32,17 +26,15 @@ export default function TweetCard({ tweet }: TweetCardProps) {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [authorData, queuedData, executedData] = await Promise.all([
+        const [authorData, tradesData] = await Promise.all([
           tweet.author_id
             ? fetchAuthor(tweet.author_id)
             : Promise.resolve(null),
-          fetchQueuedTrades(tweet.tweet_process_id),
-          fetchExecutedTrades(tweet.tweet_process_id),
+          fetchTrades(tweet.tweet_process_id),
         ]);
 
         setAuthor(authorData?.data || null);
-        setQueuedTrades(queuedData.trades || []);
-        setExecutedTrades(executedData.trades || []);
+        setTrades(tradesData.trades || []);
       } catch (error) {
         console.error("Error fetching tweet data:", error);
       } finally {
@@ -53,7 +45,7 @@ export default function TweetCard({ tweet }: TweetCardProps) {
     fetchData();
   }, [tweet.tweet_process_id, tweet.author_id]);
 
-  const allTrades = [...queuedTrades, ...executedTrades];
+  const allTrades = trades;
 
   // Measure container width and update CSS custom property
   useEffect(() => {
@@ -182,12 +174,12 @@ export default function TweetCard({ tweet }: TweetCardProps) {
                     </span>
                     <span
                       className={`px-3 py-1 rounded-full text-xs font-medium ${
-                        "executed_at" in trade
+                        trade.executed
                           ? "bg-green-100 text-green-800 border border-green-200"
                           : "bg-twitter-100 text-twitter-800 border border-twitter-200"
                       }`}
                     >
-                      {"executed_at" in trade ? "Executed" : "Queued"}
+                      {trade.executed ? "Executed" : "Queued"}
                     </span>
                   </div>
 
@@ -222,7 +214,7 @@ export default function TweetCard({ tweet }: TweetCardProps) {
                         </div>
                         <div className="font-bold text-twitter-900 text-sm">
                           {formatDate(
-                            "executed_at" in trade
+                            trade.executed && trade.executed_at
                               ? trade.executed_at
                               : trade.queued_at
                           )}

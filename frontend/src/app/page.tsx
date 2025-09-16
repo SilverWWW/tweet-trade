@@ -6,21 +6,18 @@ import TweetCard from "@/components/TweetCard";
 import DashboardStats from "@/components/DashboardStats";
 import {
   fetchTweetsWithMarketEffect,
-  fetchAllQueuedTrades,
-  fetchAllExecutedTrades,
-  fetchAllTweetsWithMarketEffect,
+  fetchTweetsCount,
+  fetchTradesCount,
+  fetchTradesVolume,
   type TweetProcess,
-  type QueuedTrade,
-  type ExecutedTrade,
 } from "@/lib/api";
 
 export default function Home() {
   const [tweets, setTweets] = useState<TweetProcess[]>([]);
-  const [allTweets, setAllTweets] = useState<TweetProcess[]>([]);
-  const [allQueuedTrades, setAllQueuedTrades] = useState<QueuedTrade[]>([]);
-  const [allExecutedTrades, setAllExecutedTrades] = useState<ExecutedTrade[]>(
-    []
-  );
+  const [tweetsCount, setTweetsCount] = useState<number>(0);
+  const [tweetsMarketEffectCount, setTweetsMarketEffectCount] = useState<number>(0);
+  const [totalTradesCount, setTotalTradesCount] = useState<number>(0);
+  const [totalTradesVolume, setTotalTradesVolume] = useState<number>(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
@@ -37,20 +34,23 @@ export default function Home() {
       // Fetch data in parallel for better performance
       const [
         displayTweetsResponse,
-        allTweetsResponse,
-        queuedTradesResponse,
-        executedTradesResponse,
+        tweetsCountResponse,
+        tweetsMarketEffectCountResponse,
+        totalTradesCountResponse,
+        totalTradesVolumeResponse,
       ] = await Promise.all([
         fetchTweetsWithMarketEffect(20), // For display
-        fetchAllTweetsWithMarketEffect(), // For total count
-        fetchAllQueuedTrades(), // For dashboard stats
-        fetchAllExecutedTrades(), // For dashboard stats
+        fetchTweetsCount(), // For total count of tweets
+        fetchTweetsCount(true), // For total count of tweets with market effect
+        fetchTradesCount(), // For total trades count
+        fetchTradesVolume(), // For total trade volume
       ]);
 
       setTweets(displayTweetsResponse.data || []);
-      setAllTweets(allTweetsResponse.data || []);
-      setAllQueuedTrades(queuedTradesResponse.trades || []);
-      setAllExecutedTrades(executedTradesResponse.trades || []);
+      setTweetsCount(tweetsCountResponse.data?.total || 0);
+      setTweetsMarketEffectCount(tweetsMarketEffectCountResponse.data?.total || 0)
+      setTotalTradesCount(totalTradesCountResponse.data?.total || 0);
+      setTotalTradesVolume(totalTradesVolumeResponse.data?.total_volume)
     } catch (err) {
       console.error("Error fetching tweets:", err);
       setError(err instanceof Error ? err.message : "Failed to fetch tweets");
@@ -146,9 +146,10 @@ export default function Home() {
       <div className="container mx-auto px-4 py-8">
         {/* Dashboard Stats */}
         <DashboardStats
-          tweets={allTweets}
-          queuedTrades={allQueuedTrades}
-          executedTrades={allExecutedTrades}
+          tweetsCount={tweetsCount}
+          tweetsMarketEffectCount={tweetsMarketEffectCount}
+          totalTradesCount={totalTradesCount}
+          totalVolume={totalTradesVolume}
         />
 
         {tweets.length === 0 ? (

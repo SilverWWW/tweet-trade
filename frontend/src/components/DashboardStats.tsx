@@ -6,40 +6,58 @@ import {
   DollarSign,
   CheckCircle,
 } from "lucide-react";
-import type { TweetProcess, QueuedTrade, ExecutedTrade } from "@/lib/api";
+
+const formatPrice = (num: number, precision = 1) => {
+  const magnitudes = [
+    { value: 1e12, symbol: 'T' }, // Trillion
+    { value: 1e9,  symbol: 'B' }, // Billion
+    { value: 1e6,  symbol: 'M' }, // Million
+    { value: 1e3,  symbol: 'K' }, // Thousand
+  ];
+  if (num === 0) {
+    return '0';
+  }
+  const item = magnitudes.find(item => Math.abs(num) >= item.value);
+  if (item) {
+    const value = num / item.value;
+    return `${value.toFixed(precision)}${item.symbol}`;
+  }
+  return String(Math.floor(num));
+};
 
 interface DashboardStatsProps {
-  tweets: TweetProcess[];
-  queuedTrades: QueuedTrade[];
-  executedTrades: ExecutedTrade[];
+  tweetsCount: number;
+  tweetsMarketEffectCount: number;
+  totalTradesCount: number;
+  totalVolume: number;
 }
 
 export default function DashboardStats({
-  tweets,
-  queuedTrades,
-  executedTrades,
+  tweetsCount,
+  tweetsMarketEffectCount,
+  totalTradesCount,
+  totalVolume,
 }: DashboardStatsProps) {
-  const totalTrades = queuedTrades.length + executedTrades.length;
-
-  const totalVolume = [...queuedTrades, ...executedTrades].reduce(
-    (sum, trade) => {
-      return sum + parseFloat(trade.dollar_amount);
-    },
-    0
-  );
-
   const stats = [
     {
-      label: "Total Posts",
-      value: tweets.length,
+      label: "All Posts",
+      value: tweetsCount,
       icon: MessageSquare,
       color: "bg-twitter-500",
       bgColor: "bg-white",
       textColor: "text-twitter-500",
     },
     {
+      label: "Relevant Posts",
+      value: tweetsMarketEffectCount,
+      icon: CheckCircle,
+      color: "bg-twitter-500",
+      bgColor: "bg-white",
+      textColor: "text-twitter-500",
+    },
+    {
       label: "Total Trades",
-      value: totalTrades,
+      value: totalTradesCount,
       icon: TrendingUp,
       color: "bg-twitter-500",
       bgColor: "bg-white",
@@ -47,16 +65,8 @@ export default function DashboardStats({
     },
     {
       label: "Total Volume",
-      value: `$${totalVolume.toLocaleString()}`,
+      value: formatPrice(totalVolume),
       icon: DollarSign,
-      color: "bg-twitter-500",
-      bgColor: "bg-white",
-      textColor: "text-twitter-500",
-    },
-    {
-      label: "Executed Trades",
-      value: `${executedTrades.length}/${queuedTrades.length}`,
-      icon: CheckCircle,
       color: "bg-twitter-500",
       bgColor: "bg-white",
       textColor: "text-twitter-500",
