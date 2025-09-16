@@ -147,7 +147,7 @@ router.get('/volume', async (req, res) => {
     const { executed, ticker } = req.query;
 
     // Default to executed trades only if not specified
-    let executedFilter = true;
+    let executedFilter = null;
     if (executed !== undefined) {
       if (executed === 'true') {
         executedFilter = true;
@@ -172,7 +172,9 @@ router.get('/volume', async (req, res) => {
     // Build the volume query based on filters
     let volumeResult;
 
-    if (ticker) {
+    
+
+    if (executedFilter !== null && ticker) {
       // Filter by both execution status and ticker
       volumeResult = await sql`
         SELECT 
@@ -181,14 +183,28 @@ router.get('/volume', async (req, res) => {
         FROM trades 
         WHERE executed = ${executedFilter} AND ticker = ${ticker}
       `;
-    } else {
-      // Filter by execution status only
+    } else if (executedFilter !== null) {
       volumeResult = await sql`
         SELECT 
           COALESCE(SUM(dollar_amount), 0) as total_volume,
           COUNT(*) as trade_count
         FROM trades 
         WHERE executed = ${executedFilter}
+      `;
+    } else if (ticker) {
+      volumeResult = await sql`
+        SELECT 
+          COALESCE(SUM(dollar_amount), 0) as total_volume,
+          COUNT(*) as trade_count
+        FROM trades 
+        WHERE ticker = ${ticker}
+      `;
+    } else {
+      volumeResult = await sql`
+        SELECT 
+          COALESCE(SUM(dollar_amount), 0) as total_volume,
+          COUNT(*) as trade_count
+        FROM trades
       `;
     }
 
